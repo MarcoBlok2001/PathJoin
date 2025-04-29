@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "graph_io.h"
+#include "walks.h"
 
 
 int main(int argc, char* argv[]) {
@@ -25,7 +26,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    print_adjacency_matrix(adj, num_vertices);
+    // print_adjacency_matrix(adj, num_vertices);
+    int walk_count = 0;
+    int **walks = get_walks(adj, num_vertices, 4, &walk_count);
+    printf("walk_count: %d\n", walk_count);
+    print_walks(walks, 4, walk_count);
+    free_walks(walks, walk_count);
     free_adjacency_matrix(adj, num_vertices);
 
     return 0;

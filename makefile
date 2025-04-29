@@ -1,6 +1,6 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11
+CFLAGS = -O3 -Wall -Wextra -std=c11
 
 # Source files and object files
 SRCS = $(wildcard *.c)
