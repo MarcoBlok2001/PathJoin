@@ -30,15 +30,16 @@ int main(int argc, char* argv[]) {
 
     // print_adjacency_matrix(adj, num_vertices);
     int walk_count = 0;
-    int **walks = get_walks(adj, num_vertices, 7, &walk_count);
+    int **walks = get_walks(adj, num_vertices, 6, &walk_count);
     printf("walk_count: %d\n", walk_count);
     // print_walks(walks, 6, walk_count);
     int cycle_count = 0;
-    // int **cycles = walk_wrap(walks, 4, walk_count, num_vertices, &cycle_count);
-    int **cycles = walk_join(walks, 7, walk_count, num_vertices, &cycle_count);
+    // int **cycles = walk_wrap(walks, 9, walk_count, num_vertices, &cycle_count);
+    int **cycles = walk_join(walks, 6, walk_count, num_vertices, &cycle_count);
+    // int **cycles = walk_join_three(walks, 4, walk_count, num_vertices, &cycle_count);
 
     printf("cycle_count: %d\n", cycle_count);
-    // print_walks(cycles, 8, 20);
+    print_walks(cycles, 12, 20);
     free_walks(cycles, cycle_count);
     free_walks(walks, walk_count);
     free_adjacency_matrix(adj, num_vertices);

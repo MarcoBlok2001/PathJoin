@@ -10,4 +10,6 @@
 
 int** walk_join(int **walks, int walk_len, int n, int max_nodes, int *out_count);
 
+int** walk_join_three(int **walks, int k, int n_walks, int max_nodes, int *out_count);
+
 #endif // WALKWRAP_H
