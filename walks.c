@@ -20,22 +20,22 @@ static void dfs(int **adj, int n, int k, int node, int depth, int *path, int **w
     for (int neighbor = 0; neighbor < n; neighbor++) {
         if (adj[node][neighbor]) {
             // Option 1: prevent immediate backtrack
-            // if(depth > 0 && neighbor == path[depth - 1]){ // prevent immediate backtracking
-            //     continue;
-            // }
+            if(depth > 0 && neighbor == path[depth - 1]){ // prevent immediate backtracking
+                continue;
+            }
 
             // Option 2: prevent revisiting any node twice.
             // prevent revisiting any node in the path
-            int visited = 0;
-            for (int i = 0; i <= depth; i++) {
-                if (path[i] == neighbor) {
-                    visited = 1;
-                    break;
-                }
-            }
-            if (visited) {
-                continue;
-            }
+            // int visited = 0;
+            // for (int i = 0; i <= depth; i++) {
+            //     if (path[i] == neighbor) {
+            //         visited = 1;
+            //         break;
+            //     }
+            // }
+            // if (visited) {
+            //     continue;
+            // }
 
             path[depth + 1] = neighbor;
             dfs(adj, n, k, neighbor, depth + 1, path, walks, walk_count);
