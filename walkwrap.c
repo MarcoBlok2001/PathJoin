@@ -1,9 +1,8 @@
 #include <stdlib.h>
 #include "walkwrap.h"
 
-#define MAX_NODES 20
 
-int is_simple_cycle(int *walk, int k, int *seen, int max_nodes) {
+static int is_simple_cycle(int *walk, int k, int *seen, int max_nodes) {
     memset(seen, 0, max_nodes * sizeof(int));
 
     if (walk[0] != walk[k]) {
@@ -15,6 +14,7 @@ int is_simple_cycle(int *walk, int k, int *seen, int max_nodes) {
     }
     return 1;
 }
+
 
 int** walk_wrap(int **walks, int k, int n, int max_nodes, int *out_count) {
     int **result = malloc(n * sizeof(int*));  // At most n cycles
