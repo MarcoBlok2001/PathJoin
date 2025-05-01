@@ -12,6 +12,28 @@ typedef struct {
     UT_hash_handle hh;
 } WalkMapEntry;
 
+void add_walk_to_map2(WalkMapEntry **map, int *walk, int start_idx, int end_idx) {
+    WalkKey key = {walk[start_idx], walk[end_idx]};
+    WalkMapEntry *entry = NULL;
+    HASH_FIND(hh, *map, &key, sizeof(WalkKey), entry);
+
+    if (!entry) {
+        entry = malloc(sizeof(WalkMapEntry));
+        entry->key = key;
+        entry->count = 0;
+        entry->capacity = 4;
+        entry->walk_list = malloc(sizeof(int*) * entry->capacity);
+        HASH_ADD(hh, *map, key, sizeof(WalkKey), entry);
+    }
+
+    if (entry->count == entry->capacity) {
+        entry->capacity *= 2;
+        entry->walk_list = realloc(entry->walk_list, sizeof(int*) * entry->capacity);
+    }
+
+    entry->walk_list[entry->count++] = walk;
+}
+
 void add_walk_to_map(WalkMapEntry **map, int *walk, int k) {
     WalkKey key = {walk[0], walk[k]};
     WalkMapEntry *entry = NULL;
@@ -47,6 +69,136 @@ static int is_simple_cycle(int *walk, int k, int *seen, int max_nodes) {
     }
     return 1;
 }
+
+int** walk_join_mixed(int **walks1, int k1, int n1,
+                      int **walks2, int k2, int n2,
+                      int max_nodes, int *out_count) {
+    WalkMapEntry *map = NULL;
+    int *seen = malloc(max_nodes * sizeof(int));
+    int **result = malloc(n1 * n2 * sizeof(int*)); // worst case allocation
+
+    // Build map from walks2 using (start, end) as key
+    for (int i = 0; i < n2; i++) {
+        add_walk_to_map2(&map, walks2[i], 0, k2);
+    }
+
+    int count = 0;
+    WalkMapEntry *entry;
+    for (int i = 0; i < n1; i++) {
+        int *w1 = walks1[i];
+        WalkKey key = {w1[k1], w1[0]};  // match end of w1 to start of w2
+
+        HASH_FIND(hh, map, &key, sizeof(WalkKey), entry);
+        if (!entry) continue;
+
+        for (int j = 0; j < entry->count; j++) {
+            int *w2 = entry->walk_list[j];
+
+            int len = k1 + k2 + 1;
+            int *joined = malloc(len * sizeof(int));
+
+            for (int x = 0; x <= k1; x++) joined[x] = w1[x];
+            for (int x = 1; x <= k2; x++) joined[k1 + x] = w2[x];
+
+            if (is_simple_cycle(joined, len - 1, seen, max_nodes)) {
+                result[count++] = joined;
+            } else {
+                free(joined);
+            }
+        }
+    }
+
+    // Cleanup
+    WalkMapEntry *tmp;
+    HASH_ITER(hh, map, entry, tmp) {
+        free(entry->walk_list);
+        HASH_DEL(map, entry);
+        free(entry);
+    }
+    free(seen);
+
+    *out_count = count;
+    return result;
+}
+
+int** walk_join_four(int **walks, int k, int n_walks, int max_nodes, int *out_count) {
+    WalkMapEntry *map = NULL;
+    int *seen = malloc(max_nodes * sizeof(int));
+    int **result = malloc(n_walks * n_walks * n_walks * n_walks * sizeof(int*));
+    int count = 0;
+
+    // Build map (start, end) -> walk list
+    for (int i = 0; i < n_walks; i++) {
+        add_walk_to_map(&map, walks[i], k);
+    }
+
+    WalkMapEntry *w1_entry, *tmp;
+    HASH_ITER(hh, map, w1_entry, tmp) {
+        for (int i = 0; i < w1_entry->count; i++) {
+            int *w1 = w1_entry->walk_list[i];
+            int a = w1[0];
+            int b = w1[k];
+
+            // Find all w2: b -> c
+            for (int j = 0; j < n_walks; j++) {
+                int *w2 = walks[j];
+                if (w2[0] != b) continue;
+                int c = w2[k];
+
+                // Find all w3: c -> d
+                for (int m = 0; m < n_walks; m++) {
+                    int *w3 = walks[m];
+                    if (w3[0] != c) continue;
+                    int d = w3[k];
+
+                    // Find w4: d -> a
+                    WalkKey key4 = {d, a};
+                    WalkMapEntry *w4_entry = NULL;
+                    HASH_FIND(hh, map, &key4, sizeof(WalkKey), w4_entry);
+                    if (!w4_entry) continue;
+
+                    for (int n = 0; n < w4_entry->count; n++) {
+                        int *w4 = w4_entry->walk_list[n];
+
+                        // Avoid duplicate walks
+                        if (w4 == w1 || w4 == w2 || w4 == w3) continue;
+
+                        int total_len = 4 * k;
+                        int *joined = malloc((total_len + 1) * sizeof(int));
+
+                        // w1[0..k]
+                        for (int x = 0; x <= k; x++) joined[x] = w1[x];
+                        // w2[1..k]
+                        for (int x = 1; x <= k; x++) joined[k + x] = w2[x];
+                        // w3[1..k]
+                        for (int x = 1; x <= k; x++) joined[2 * k + x] = w3[x];
+                        // w4[1..k]
+                        for (int x = 1; x <= k; x++) joined[3 * k + x] = w4[x];
+
+                        if (is_simple_cycle(joined, total_len, seen, max_nodes)) {
+                            if (count % 100000 == 0) printf("%d\n", count);
+                            result[count++] = joined;
+                        } else {
+                            free(joined);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Cleanup
+    HASH_ITER(hh, map, w1_entry, tmp) {
+        free(w1_entry->walk_list);
+        HASH_DEL(map, w1_entry);
+        free(w1_entry);
+    }
+
+    free(seen);
+    *out_count = count;
+    return result;
+}
+
 
 int** walk_join_three(int **walks, int k, int n_walks, int max_nodes, int *out_count) {
     WalkMapEntry *map = NULL;
@@ -97,6 +249,7 @@ int** walk_join_three(int **walks, int k, int n_walks, int max_nodes, int *out_c
                     for (int x = 1; x <= k; x++) joined[2 * k + x] = w3[x];
 
                     if (is_simple_cycle(joined, total_len, seen, max_nodes)) {
+                        if (count % 100 == 0) printf("%d\n", count);
                         result[count++] = joined;
                     } else {
                         free(joined);

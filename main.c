@@ -28,20 +28,37 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // print_adjacency_matrix(adj, num_vertices);
     int walk_count = 0;
-    int **walks = get_walks(adj, num_vertices, 6, &walk_count);
+    int **walks = get_walks(adj, num_vertices, 12, &walk_count);
     printf("walk_count: %d\n", walk_count);
+    // print_adjacency_matrix(adj, num_vertices);
+    // int walk4_count = 0;
+    // int **walks4 = get_walks(adj, num_vertices, 4, &walk4_count);
+    // printf("walk4_count: %d\n", walk4_count);
+
+    // int walk6_count = 0;
+    // int **walks6 = get_walks(adj, num_vertices, 6, &walk6_count);
+    // printf("walk6_count: %d\n", walk6_count);
+
+    // int walk8_count = 0;
+    // int **walks8 = get_walks(adj, num_vertices, 8, &walk8_count);
+    // printf("walk8_count: %d\n", walk8_count);
     // print_walks(walks, 6, walk_count);
     int cycle_count = 0;
-    // int **cycles = walk_wrap(walks, 9, walk_count, num_vertices, &cycle_count);
-    int **cycles = walk_join(walks, 6, walk_count, num_vertices, &cycle_count);
+    int **cycles = walk_wrap(walks, 12, walk_count, num_vertices, &cycle_count);
+    // int **cycles = walk_join(walks, 4, walk_count, num_vertices, &cycle_count);
     // int **cycles = walk_join_three(walks, 4, walk_count, num_vertices, &cycle_count);
+    // int **cycles = walk_join_four(walks4, 4, walk4_count, num_vertices, &cycle_count);
+    // int **cycles = walk_join_mixed(walks8, 8, walk8_count, walks4, 4, walk4_count, num_vertices, &cycle_count);
 
     printf("cycle_count: %d\n", cycle_count);
     print_walks(cycles, 12, 20);
     free_walks(cycles, cycle_count);
     free_walks(walks, walk_count);
+    // free_walks(walks4, walk4_count);
+    // free_walks(walks6, walk6_count);
+    // free_walks(walks8, walk8_count);
+
     free_adjacency_matrix(adj, num_vertices);
 
     return 0;
