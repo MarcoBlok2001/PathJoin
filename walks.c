@@ -1,24 +1,29 @@
 #include <stdlib.h>
 #include "walks.h"
 
-int MAX_WALKS = 300000000;
+typedef struct {
+    int **walks;
+    int *count;
+    int capacity;
+} WalksData;
 
-static void dfs(int **adj, int n, int k, int node, int depth, int *path, int **walks, int *walk_count) {
-    // printf("walk count: %d\n", *walk_count);
-    if (*walk_count >= MAX_WALKS) {
-        printf("Max walks exceeded\n");
-        return;
-    }
+static void dfs(int **adj, int n_vertices, int len, int node, int depth, int *path, WalksData *data) {
+    if (*data->count >= data->capacity) {
+        data->capacity *= 2;
+        data->walks = realloc(data->walks, sizeof(int*) * data->capacity);
 
-    if (depth == k) {
+        printf("Rescaling walks to %d\n", data->capacity);
+    };
+
+    if (depth == len) {
         // save walk
-        walks[*walk_count] = malloc((k + 1) * sizeof(int));
-        memcpy(walks[*walk_count], path, (k + 1) * sizeof(int));
-        (*walk_count)++;
+        data->walks[*data->count] = malloc((len + 1) * sizeof(int));
+        memcpy(data->walks[*data->count], path, (len + 1) * sizeof(int));
+        (*data->count)++;
         return;
     }
 
-    for (int neighbor = 0; neighbor < n; neighbor++) {
+    for (int neighbor = 0; neighbor < n_vertices; neighbor++) {
         if (adj[node][neighbor]) {
             // Option 1: prevent immediate backtrack
             // if(depth > 0 && neighbor == path[depth - 1]){ // prevent immediate backtracking
@@ -30,7 +35,7 @@ static void dfs(int **adj, int n, int k, int node, int depth, int *path, int **w
             int visited = 0;
             for (int i = 0; i <= depth; i++) {
                 if (path[i] == neighbor) {
-                    if (!(i == 0 && depth + 1 == k && neighbor == path[0])) {
+                    if (!(i == 0 && depth + 1 == len && neighbor == path[0])) {
                         visited = 1;
                         break;
                     }
@@ -41,30 +46,34 @@ static void dfs(int **adj, int n, int k, int node, int depth, int *path, int **w
             }
 
             path[depth + 1] = neighbor;
-            dfs(adj, n, k, neighbor, depth + 1, path, walks, walk_count);
+            dfs(adj, n_vertices, len, neighbor, depth + 1, path, data);
         }
     }
 }
 
-int** get_walks(int **adj, int n, int k, int *count) {
-    int **walks = malloc(MAX_WALKS * sizeof(int *));
-    *count = 0;
+int** get_walks(int **adj, int n_vertices, int len, int *count) {
+    WalksData *data = malloc(sizeof(WalksData));
+    data->count = count;
+    data->capacity = 1000;
+    data->walks = malloc(data->capacity * sizeof(int *));
 
-    int *path = malloc((k + 1) * sizeof(int));
+    int *path = malloc((len + 1) * sizeof(int));
 
-    for (int start = 0; start < n; start++) {
+    for (int start = 0; start < n_vertices; start++) {
         path[0] = start;
-        dfs(adj, n, k, start, 0, path, walks, count);
+        dfs(adj, n_vertices, len, start, 0, path, data);
     }
 
     free(path);
+    int **walks = data->walks;
+    free(data);
     return walks;
 }
 
-void print_walks(int **walks, int k, int count) {
+void print_walks(int **walks, int len, int count) {
     printf("Found %d walks:\n", count);
     for (int i = 0; i < count; i++) {
-        for (int j = 0; j <= k; j++) {
+        for (int j = 0; j <= len; j++) {
             printf("%d ", walks[i][j]);
         }
         printf("\n");
