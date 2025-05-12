@@ -1,3 +1,4 @@
+// walks.c
 #include <stdlib.h>
 #include "walks.h"
 
@@ -16,7 +17,7 @@ static void dfs(int **adj, int n_vertices, int len, int node, int depth, int *pa
     };
 
     if (depth == len) {
-        if (path[0] > path[len - 1]) return;
+        // if (path[0] > path[len - 1]) return;
         // save walk
         data->walks[*data->count] = malloc((len + 1) * sizeof(int));
         memcpy(data->walks[*data->count], path, (len + 1) * sizeof(int));

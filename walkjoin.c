@@ -1,3 +1,4 @@
+// walkjoin.c
 #include "walkjoin.h"
 
 typedef struct {
@@ -358,20 +359,20 @@ int** walk_join(int **walks, int k, int n_walks, int max_nodes, int *out_count) 
     CycleSetEntry *cycle_set = NULL;
 
     // // Build map
-    // for (int i = 0; i < n_walks; i++) {
-    //     add_walk_to_map(&map, walks[i], k);
-    // }
     for (int i = 0; i < n_walks; i++) {
         add_walk_to_map(&map, walks[i], k);
-
-        // Create reversed walk
-        int *reversed = malloc((k + 1) * sizeof(int));
-        for (int j = 0; j <= k; j++) {
-            reversed[j] = walks[i][k - j];
-        }
-        add_walk_to_map(&map, reversed, k);
-
     }
+    // for (int i = 0; i < n_walks; i++) {
+    //     add_walk_to_map(&map, walks[i], k);
+
+    //     // Create reversed walk
+    //     int *reversed = malloc((k + 1) * sizeof(int));
+    //     for (int j = 0; j <= k; j++) {
+    //         reversed[j] = walks[i][k - j];
+    //     }
+    //     add_walk_to_map(&map, reversed, k);
+
+    // }
 
     int count = 0;
     WalkMapEntry *entry, *reverse_entry, *tmp;
