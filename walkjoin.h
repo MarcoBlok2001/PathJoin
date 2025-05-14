@@ -7,18 +7,7 @@
 #include <stdlib.h>
 
 #include "uthash.h"
-
-typedef struct {
-    int start, end;
-} WalkKey;
-
-typedef struct {
-    WalkKey key;
-    int **walk_list;
-    int count;
-    int capacity;
-    UT_hash_handle hh;
-} WalkMapEntry;
+#include "walks.h"
 
 typedef struct {
     int *cycle;

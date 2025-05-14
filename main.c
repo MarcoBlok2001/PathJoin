@@ -39,14 +39,15 @@ int main(int argc, char* argv[]) {
     // int **walks6 = get_walks(adj, num_vertices, 6, &walk6_count);
     // printf("walk6_count: %d\n", walk6_count);
 
-    WalkMapEntry *walks8 = get_walks(adj, num_vertices, 7);
+    WalkMapEntry *walks1 = get_walks(adj, num_vertices, 1);
+    WalkMapEntry *walks2 = get_walks(adj, num_vertices, 2);
     printf("Got walks\n");
     // print_walks(walks, 6, walk_count);
     int cycle_count = 0;
     // int **cycles = walk_join(walks8, 6, num_vertices, &cycle_count);
     // int **cycles = walk_join_three(walks, 4, walk_count, num_vertices, &cycle_count);
     // int **cycles = walk_join_four(walks, 2, walk_count, num_vertices, &cycle_count);
-    int **cycles = walk_join_mixed(walks8, 7, walks8, 7, num_vertices, &cycle_count);
+    int **cycles = walk_join_mixed(walks2, 2, walks1, 1, num_vertices, &cycle_count);
 
     printf("cycle_count: %d\n", cycle_count);
     // print_walks(cycles, 9, 20);
@@ -56,7 +57,8 @@ int main(int argc, char* argv[]) {
     }
     free(cycles);
 
-    free_walk_map(walks8);
+    free_walk_map(walks1);
+    free_walk_map(walks2);
 
     free_adjacency_matrix(adj, num_vertices);
 
