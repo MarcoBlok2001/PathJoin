@@ -4,11 +4,12 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "walkjoin.h"
 
-int** get_walks(int **adj, int n_vertices, int len, int *count);
+WalkMapEntry* get_walks(int **adj, int n_vertices, int len);
 
-void print_walks(int **walks, int len, int count);
+void print_walk_map(WalkMapEntry*walks, int len);
 
-void free_walks(int **walks, int count);
+void free_walk_map(WalkMapEntry*walks);
 
 #endif // WALKS_H

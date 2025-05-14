@@ -1,24 +1,6 @@
 // walkjoin.c
 #include "walkjoin.h"
 
-typedef struct {
-    int start, end;
-} WalkKey;
-
-typedef struct {
-    WalkKey key;
-    int **walk_list;
-    int count;
-    int capacity;
-    UT_hash_handle hh;
-} WalkMapEntry;
-
-typedef struct {
-    int *cycle;
-    int len;
-    UT_hash_handle hh;
-} CycleSetEntry;
-
 int compare_cycles(const int *a, const int *b, int len) {
     for (int i = 0; i < len; i++) {
         if (a[i] != b[i]) return a[i] - b[i];
@@ -31,7 +13,7 @@ void store_cycle(CycleSetEntry **set, int *cycle, int len) {
     entry->cycle = malloc(len * sizeof(int));
     memcpy(entry->cycle, cycle, len * sizeof(int));
     entry->len = len;
-    HASH_ADD(hh, *set, cycle, sizeof(int) * len, entry);
+    HASH_ADD_KEYPTR(hh, *set, entry->cycle, len * sizeof(int), entry);
 }
 
 // Canonicalize a cycle: lex smallest among all rotations and reversed rotations
@@ -91,28 +73,6 @@ int cycle_already_seen(CycleSetEntry *set, int *cycle, int len) {
     return entry != NULL;
 }
 
-void add_walk_to_map(WalkMapEntry **map, int *walk, int k) {
-    WalkKey key = {walk[0], walk[k]};
-    WalkMapEntry *entry = NULL;
-    HASH_FIND(hh, *map, &key, sizeof(WalkKey), entry);
-
-    if (!entry) {
-        entry = malloc(sizeof(WalkMapEntry));
-        entry->key = key;
-        entry->count = 0;
-        entry->capacity = 4;
-        entry->walk_list = malloc(sizeof(int*) * entry->capacity);
-        HASH_ADD(hh, *map, key, sizeof(WalkKey), entry);
-    }
-
-    if (entry->count == entry->capacity) {
-        entry->capacity *= 2;
-        entry->walk_list = realloc(entry->walk_list, sizeof(int*) * entry->capacity);
-    }
-
-    entry->walk_list[entry->count++] = walk;
-}
-
 static int is_simple_cycle(int *walk, int k, int *seen, int max_nodes) {
     memset(seen, 0, max_nodes * sizeof(int));
 
@@ -127,71 +87,62 @@ static int is_simple_cycle(int *walk, int k, int *seen, int max_nodes) {
     return 1;
 }
 
-int** walk_join_mixed(int **walks1, int k1, int n1,
-                      int **walks2, int k2, int n2,
-                      int max_nodes, int *out_count) {
-    WalkMapEntry *map = NULL;
-    int *seen = malloc(max_nodes * sizeof(int));
-    int **result = malloc(10 * sizeof(int*)); // Initial small allocation
-    int result_capacity = 10; // Initial capacity
+int** walk_join_mixed(
+    WalkMapEntry *map1, int k1,
+    WalkMapEntry *map2, int k2,
+    int max_nodes, int *out_count
+) {
+    int result_capacity = 128;
+    int **result = malloc(result_capacity * sizeof(int*));
     int count = 0;
 
+    int *seen = malloc(max_nodes * sizeof(int));
     CycleSetEntry *cycle_set = NULL;
 
-    // Build map from walks2 using (start, end) as key
-    for (int i = 0; i < n2; i++) {
-        add_walk_to_map(&map, walks2[i], k2);
-    }
+    WalkMapEntry *entry1, *tmp1;
 
-    WalkMapEntry *entry;
-    for (int i = 0; i < n1; i++) {
-        int *w1 = walks1[i];
-        WalkKey key = {w1[k1], w1[0]};  // match end of w1 to start of w2
+    HASH_ITER(hh, map1, entry1, tmp1) {
+        WalkKey key = {entry1->key.end, entry1->key.start};  // reverse to match end of w1 to start of w2
+        WalkMapEntry *entry2;
+        HASH_FIND(hh, map2, &key, sizeof(WalkKey), entry2);
+        if (!entry2) continue;
 
-        HASH_FIND(hh, map, &key, sizeof(WalkKey), entry);
-        if (!entry) continue;
+        for (int i = 0; i < entry1->count; i++) {
+            for (int j = 0; j < entry2->count; j++) {
+                int *w1 = entry1->walk_list[i];
+                int *w2 = entry2->walk_list[j];
 
-        for (int j = 0; j < entry->count; j++) {
-            int *w2 = entry->walk_list[j];
+                int len = k1 + k2 + 1;
+                int *joined = malloc(len * sizeof(int));
 
-            int len = k1 + k2 + 1;
-            int *joined = malloc(len * sizeof(int));
+                for (int x = 0; x <= k1; x++) joined[x] = w1[x];
+                for (int x = 1; x <= k2; x++) joined[k1 + x] = w2[x];
 
-            for (int x = 0; x <= k1; x++) joined[x] = w1[x];
-            for (int x = 1; x <= k2; x++) joined[k1 + x] = w2[x];
+                if (is_simple_cycle(joined, len - 1, seen, max_nodes)) {
+                    int *canon = canonical_cycle(joined, len - 1);
+                    if (!cycle_already_seen(cycle_set, canon, len - 1)) {
+                        store_cycle(&cycle_set, canon, len - 1);
+                        free(canon);
 
-            if (is_simple_cycle(joined, len - 1, seen, max_nodes)) {
-                int *canon = canonical_cycle(joined, len - 1);
-                if (!cycle_already_seen(cycle_set, canon, len - 1)) {
-                    store_cycle(&cycle_set, canon, len - 1);
+                        if (count >= result_capacity) {
+                            result_capacity *= 2;
+                            result = realloc(result, result_capacity * sizeof(int*));
+                        }
 
-                    // Check if we need to reallocate the result array
-                    if (count >= result_capacity) {
-                        result_capacity *= 2;
-                        result = realloc(result, result_capacity * sizeof(int*));
+                        result[count++] = joined;
+                    } else {
+                        free(canon);
+                        free(joined);
                     }
-
-                    result[count++] = joined;
                 } else {
-                    free(canon);
                     free(joined);
                 }
-            } else {
-                free(joined);
             }
         }
     }
 
-    // Cleanup walk map
-    WalkMapEntry *tmp;
-    HASH_ITER(hh, map, entry, tmp) {
-        free(entry->walk_list);
-        HASH_DEL(map, entry);
-        free(entry);
-    }
     free(seen);
 
-    // Cleanup cycle set
     CycleSetEntry *centry, *tmp_entry;
     HASH_ITER(hh, cycle_set, centry, tmp_entry) {
         HASH_DEL(cycle_set, centry);
@@ -205,20 +156,15 @@ int** walk_join_mixed(int **walks1, int k1, int n1,
 
 
 
+int** walk_join(WalkMapEntry *map, int k, int max_nodes, int *out_count) {
+    int result_capacity = 128; // start with a reasonable initial capacity
+    int **result = malloc(result_capacity * sizeof(int*));
+    int count = 0;
 
-int** walk_join(int **walks, int k, int n_walks, int max_nodes, int *out_count) {
-    WalkMapEntry *map = NULL;
     int *seen = malloc(max_nodes * sizeof(int));
-    int **result = malloc(n_walks * n_walks * sizeof(int*)); // max possible
 
     CycleSetEntry *cycle_set = NULL;
 
-    // Build map
-    for (int i = 0; i < n_walks; i++) {
-        add_walk_to_map(&map, walks[i], k);
-    }
-
-    int count = 0;
     WalkMapEntry *entry, *reverse_entry, *tmp;
     HASH_ITER(hh, map, entry, tmp) {
         WalkKey rev_key = {entry->key.end, entry->key.start};
@@ -238,6 +184,13 @@ int** walk_join(int **walks, int k, int n_walks, int max_nodes, int *out_count) 
                     int *canon = canonical_cycle(joined, 2 * k);
                     if (!cycle_already_seen(cycle_set, canon, 2 * k)) {
                         store_cycle(&cycle_set, canon, 2 * k);
+                        free(canon);
+
+                        if (count == result_capacity) {
+                            result_capacity *= 2;
+                            result = realloc(result, result_capacity * sizeof(int*));
+                        }
+
                         result[count++] = joined;
                     } else {
                         free(canon);
@@ -249,15 +202,6 @@ int** walk_join(int **walks, int k, int n_walks, int max_nodes, int *out_count) 
             }
         }
     }
-
-
-    // Cleanup
-    HASH_ITER(hh, map, entry, tmp) {
-        free(entry->walk_list);
-        HASH_DEL(map, entry);
-        free(entry);
-    }
-    free(seen);
 
     CycleSetEntry *centry, *tmp_entry;
     HASH_ITER(hh, cycle_set, centry, tmp_entry) {
