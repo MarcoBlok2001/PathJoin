@@ -31,7 +31,7 @@ void store_cycle(CycleSetEntry **set, int *cycle, int len) {
     entry->cycle = malloc(len * sizeof(int));
     memcpy(entry->cycle, cycle, len * sizeof(int));
     entry->len = len;
-    HASH_ADD_KEYPTR(hh, *set, entry->cycle, len * sizeof(int), entry);
+    HASH_ADD(hh, *set, cycle, sizeof(int) * len, entry);
 }
 
 // Canonicalize a cycle: lex smallest among all rotations and reversed rotations
@@ -132,7 +132,9 @@ int** walk_join_mixed(int **walks1, int k1, int n1,
                       int max_nodes, int *out_count) {
     WalkMapEntry *map = NULL;
     int *seen = malloc(max_nodes * sizeof(int));
-    int **result = malloc(n1 * n2 * sizeof(int*)); // worst case allocation
+    int **result = malloc(10 * sizeof(int*)); // Initial small allocation
+    int result_capacity = 10; // Initial capacity
+    int count = 0;
 
     CycleSetEntry *cycle_set = NULL;
 
@@ -141,7 +143,6 @@ int** walk_join_mixed(int **walks1, int k1, int n1,
         add_walk_to_map(&map, walks2[i], k2);
     }
 
-    int count = 0;
     WalkMapEntry *entry;
     for (int i = 0; i < n1; i++) {
         int *w1 = walks1[i];
@@ -163,6 +164,13 @@ int** walk_join_mixed(int **walks1, int k1, int n1,
                 int *canon = canonical_cycle(joined, len - 1);
                 if (!cycle_already_seen(cycle_set, canon, len - 1)) {
                     store_cycle(&cycle_set, canon, len - 1);
+
+                    // Check if we need to reallocate the result array
+                    if (count >= result_capacity) {
+                        result_capacity *= 2;
+                        result = realloc(result, result_capacity * sizeof(int*));
+                    }
+
                     result[count++] = joined;
                 } else {
                     free(canon);
