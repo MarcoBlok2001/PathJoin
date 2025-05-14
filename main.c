@@ -39,29 +39,29 @@ int main(int argc, char* argv[]) {
     // int **walks6 = get_walks(adj, num_vertices, 6, &walk6_count);
     // printf("walk6_count: %d\n", walk6_count);
 
-    WalkMapEntry *walks1 = get_walks(adj, num_vertices, 4);
-    // WalkMapEntry *walks2 = get_walks(adj, num_vertices, 3);
+    WalkMapEntry *walks1 = get_walks(adj, num_vertices, 1);
+    // WalkMapEntry *walks2 = get_walks(adj, num_vertices, 2);
     printf("Got walks\n");
     // print_walks(walks, 6, walk_count);
     int cycle_count = 0;
 
-    int **cycles = walk_join(walks1, 4, walks1, 4, num_vertices, &cycle_count);
-    // int **cycles = walk_join_three(walks1, 4, walks1, 4, walks1, 4, num_vertices, &cycle_count);
-    // int **cycles = walk_join_four(walks1, 2, walks1, 2, walks1, 2, walks1, 2, num_vertices, &cycle_count);
+    // int **cycles = walk_join(walks2, 2, walks2, 2, num_vertices, &cycle_count);
+    // int **cycles = walk_join_three(walks1, 1, walks1, 1, walks1, 1, num_vertices, &cycle_count);
+    int **cycles = walk_join_four(walks1, 1, walks1, 1, walks1, 1, walks1, 1, num_vertices, &cycle_count);
 
     printf("cycle_count: %d\n", cycle_count);
 
-    for (int i = 0; i < 50; i++) {
+    // for (int i = 0; i < 50; i++) {
 
-        for (int j = 0; j <= 8; j++) {
+    //     for (int j = 0; j <= 4; j++) {
 
-            printf("%d ", cycles[i][j]);
+    //         printf("%d ", cycles[i][j]);
 
-        }
+    //     }
 
-        printf("\n");
+    //     printf("\n");
 
-    }
+    // }
 
     for (int i = 0; i < cycle_count; i++) {
         free(cycles[i]);

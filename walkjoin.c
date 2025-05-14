@@ -18,13 +18,13 @@ void store_cycle(CycleSetEntry **set, int *cycle, int len) {
 
 // Function to rotate the cycle
 void rotate_cycle(int *cycle, int len, int start_index, int *result) {
-    for (int i = 0; i < len+1; i++) {
+    for (int i = 0; i <= len; i++) {
         result[i] = cycle[(start_index + i) % len];
     }
 }
 
 void reverse_cycle(int *cycle, int len, int *result) {
-    for (int i = 0; i <= len+1; i++) {  // Loop through len elements
+    for (int i = 0; i <= len; i++) {  // Loop through len elements
         result[i] = cycle[len - i];  // Correctly reverse indexing
     }
 }
