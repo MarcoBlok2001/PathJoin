@@ -3,7 +3,6 @@
 
 #include "graph_io.h"
 #include "walks.h"
-#include "walkwrap.h"
 #include "walkjoin.h"
 
 
@@ -44,7 +43,6 @@ int main(int argc, char* argv[]) {
     printf("Got walks\n");
     // print_walks(walks, 6, walk_count);
     int cycle_count = 0;
-    // int **cycles = walk_wrap(walks, 8, walk_count, num_vertices, &cycle_count);
     // int **cycles = walk_join(walks8, 6, num_vertices, &cycle_count);
     // int **cycles = walk_join_three(walks, 4, walk_count, num_vertices, &cycle_count);
     // int **cycles = walk_join_four(walks, 2, walk_count, num_vertices, &cycle_count);
