@@ -16,55 +16,54 @@ void store_cycle(CycleSetEntry **set, int *cycle, int len) {
     HASH_ADD_KEYPTR(hh, *set, entry->cycle, len * sizeof(int), entry);
 }
 
-// Canonicalize a cycle: lex smallest among all rotations and reversed rotations
+// Function to rotate the cycle
+void rotate_cycle(int *cycle, int len, int start_index, int *result) {
+    for (int i = 0; i < len+1; i++) {
+        result[i] = cycle[(start_index + i) % len];
+    }
+}
+
+void reverse_cycle(int *cycle, int len, int *result) {
+    for (int i = 0; i <= len+1; i++) {  // Loop through len elements
+        result[i] = cycle[len - i];  // Correctly reverse indexing
+    }
+}
+
+// Canonicalize the cycle: put the smallest value in front, then rotate
 int* canonical_cycle(int *cycle, int len) {
     int min_val = cycle[0];
+    int min_index = 0;
+
+    // Find the smallest value and its index
     for (int i = 1; i < len; i++) {
-        if (cycle[i] < min_val)
+        if (cycle[i] < min_val) {
             min_val = cycle[i];
-    }
-
-    int *min_cycle = malloc((len + 1) * sizeof(int));
-    int *temp = malloc(len * sizeof(int));
-
-    // Initialize with original as baseline
-    for (int i = 0; i < len; i++)
-        min_cycle[i] = cycle[i];
-    min_cycle[len] = min_cycle[0];
-
-    // Check all forward rotations starting at min_val
-    for (int i = 0; i < len; i++) {
-        if (cycle[i] != min_val) continue;
-
-        for (int j = 0; j < len; j++)
-            temp[j] = cycle[(i + j) % len];
-
-        if (compare_cycles(temp, min_cycle, len) < 0) {
-            memcpy(min_cycle, temp, len * sizeof(int));
-            min_cycle[len] = min_cycle[0];
+            min_index = i;
         }
     }
 
-    // Reverse the cycle
-    for (int i = 0; i < len; i++)
-        temp[i] = cycle[len - 1 - i];
+    int left_index = (min_index - 1 + len) % len;
+    int right_index = (min_index + 1) % len;
 
-    // Check reversed rotations starting at min_val
-    for (int i = 0; i < len; i++) {
-        if (temp[i] != min_val) continue;
+    int diff_l = abs(cycle[left_index] - cycle[min_index]);
+    int diff_r = abs(cycle[right_index] - cycle[min_index]);
 
-        int rotated[len];
-        for (int j = 0; j < len; j++)
-            rotated[j] = temp[(i + j) % len];
+    int *result = (int*)malloc((len + 1) * sizeof(int));  // Array to store the final canonical cycle
 
-        if (compare_cycles(rotated, min_cycle, len) < 0) {
-            memcpy(min_cycle, rotated, len * sizeof(int));
-            min_cycle[len] = min_cycle[0];
-        }
+    if (diff_l < diff_r) {
+        int *temp = (int*)malloc((len + 1) * sizeof(int));
+
+        rotate_cycle(cycle, len, min_index, temp);
+        reverse_cycle(temp, len, result);
+        
+        free(temp);
+    } else {
+        // Just rotate the cycle to where the smallest value is in front
+        rotate_cycle(cycle, len, min_index, result);
+
     }
 
-    free(temp);
-    return min_cycle;
+    return result;
 }
 
 int cycle_already_seen(CycleSetEntry *set, int *cycle, int len) {
@@ -96,35 +95,40 @@ int** walk_join_mixed(
     int **result = malloc(result_capacity * sizeof(int*));
     int count = 0;
 
-    int *seen = malloc(max_nodes * sizeof(int));
+    int *seen = calloc(max_nodes, sizeof(int));  // zeroed on alloc
     CycleSetEntry *cycle_set = NULL;
 
     WalkMapEntry *entry1, *tmp1;
-
     HASH_ITER(hh, map1, entry1, tmp1) {
-        WalkKey key = {entry1->key.end, entry1->key.start};  // reverse to match end of w1 to start of w2
+        // Reverse key to match end of walk1 with start of walk2
+        WalkKey key = {entry1->key.end, entry1->key.start};
         WalkMapEntry *entry2;
         HASH_FIND(hh, map2, &key, sizeof(WalkKey), entry2);
         if (!entry2) continue;
 
         for (int i = 0; i < entry1->count; i++) {
+            int *w1 = entry1->walk_list[i];
+
             for (int j = 0; j < entry2->count; j++) {
-                int *w1 = entry1->walk_list[i];
                 int *w2 = entry2->walk_list[j];
 
-                int len = k1 + k2 + 1;
-                int *joined = malloc(len * sizeof(int));
+                // Allocate joined buffer once
+                int total_len = k1 + k2 + 1;
+                int *joined = malloc(total_len * sizeof(int));
 
-                for (int x = 0; x <= k1; x++) joined[x] = w1[x];
-                for (int x = 1; x <= k2; x++) joined[k1 + x] = w2[x];
+                // Join: w1[0..k1] + w2[1..k2]
+                memcpy(joined, w1, (k1 + 1) * sizeof(int));
+                memcpy(joined + k1 + 1, w2 + 1, k2 * sizeof(int));
 
-                if (is_simple_cycle(joined, len - 1, seen, max_nodes)) {
-                    int *canon = canonical_cycle(joined, len - 1);
-                    if (!cycle_already_seen(cycle_set, canon, len - 1)) {
-                        store_cycle(&cycle_set, canon, len - 1);
+                // Validate simple cycle
+                if (is_simple_cycle(joined, total_len - 1, seen, max_nodes)) {
+                    int *canon = canonical_cycle(joined, total_len - 1);
+
+                    if (!cycle_already_seen(cycle_set, canon, total_len - 1)) {
+                        store_cycle(&cycle_set, canon, total_len - 1);
                         free(canon);
 
-                        if (count >= result_capacity) {
+                        if (count == result_capacity) {
                             result_capacity *= 2;
                             result = realloc(result, result_capacity * sizeof(int*));
                         }
@@ -143,8 +147,9 @@ int** walk_join_mixed(
 
     free(seen);
 
-    CycleSetEntry *centry, *tmp_entry;
-    HASH_ITER(hh, cycle_set, centry, tmp_entry) {
+    // Free the cycle set
+    CycleSetEntry *centry, *tmp;
+    HASH_ITER(hh, cycle_set, centry, tmp) {
         HASH_DEL(cycle_set, centry);
         free(centry->cycle);
         free(centry);
@@ -153,6 +158,7 @@ int** walk_join_mixed(
     *out_count = count;
     return result;
 }
+
 
 
 

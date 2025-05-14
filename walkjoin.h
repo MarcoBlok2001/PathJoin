@@ -15,6 +15,8 @@ typedef struct {
     UT_hash_handle hh;
 } CycleSetEntry;
 
+int* canonical_cycle(int *cycle, int len);
+
 int** walk_join(WalkMapEntry *map, int walk_len, int max_nodes, int *out_count);
 
 int** walk_join_three(int **walks, int k, int n_walks, int max_nodes, int *out_count);
