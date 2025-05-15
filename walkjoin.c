@@ -10,25 +10,30 @@ void store_cycle(CycleSetEntry **set, int *cycle, int len) {
     HASH_ADD_KEYPTR(hh, *set, entry->cycle, len * sizeof(int), entry);
 }
 
-// Function to rotate the cycle
+#include <stdlib.h>
+
+// Rotate the cycle so that start_index becomes the first element
 void rotate_cycle(int *cycle, int len, int start_index, int *result) {
     for (int i = 0; i <= len; i++) {
         result[i] = cycle[(start_index + i) % len];
     }
 }
 
-void reverse_cycle(int *cycle, int len, int *result) {
-    for (int i = 0; i <= len; i++) {  // Loop through len elements
-        result[i] = cycle[len - i];  // Correctly reverse indexing
+// Reverse an array in place
+void reverse_in_place(int *cycle, int len) {
+    for (int i = 0; i <= len / 2; i++) {
+        int tmp = cycle[i];
+        cycle[i] = cycle[len - i];
+        cycle[len - i] = tmp;
     }
 }
 
-// Canonicalize the cycle: put the smallest value in front, then rotate
+// Canonicalize the cycle
 int* canonical_cycle(int *cycle, int len) {
-    int min_val = cycle[0];
     int min_index = 0;
+    int min_val = cycle[0];
 
-    // Find the smallest value and its index
+    // Find the index of the minimum value
     for (int i = 1; i < len; i++) {
         if (cycle[i] < min_val) {
             min_val = cycle[i];
@@ -39,26 +44,26 @@ int* canonical_cycle(int *cycle, int len) {
     int left_index = (min_index - 1 + len) % len;
     int right_index = (min_index + 1) % len;
 
-    int diff_l = abs(cycle[left_index] - cycle[min_index]);
-    int diff_r = abs(cycle[right_index] - cycle[min_index]);
+    int diff_l = cycle[min_index] - cycle[left_index];
+    if (diff_l < 0) diff_l = -diff_l;
 
-    int *result = (int*)malloc((len + 1) * sizeof(int));  // Array to store the final canonical cycle
+    int diff_r = cycle[right_index] - cycle[min_index];
+    if (diff_r < 0) diff_r = -diff_r;
 
+    int *result = (int*)malloc((len + 1) * sizeof(int));
+
+    // Rotate first
+    rotate_cycle(cycle, len, min_index, result);
+
+    // Reverse in-place if left diff is smaller
     if (diff_l < diff_r) {
-        int *temp = (int*)malloc((len + 1) * sizeof(int));
-
-        rotate_cycle(cycle, len, min_index, temp);
-        reverse_cycle(temp, len, result);
-
-        free(temp);
-    } else {
-        // Just rotate the cycle to where the smallest value is in front
-        rotate_cycle(cycle, len, min_index, result);
-
+        reverse_in_place(result, len);
     }
 
     return result;
 }
+
+
 
 int cycle_already_seen(CycleSetEntry *set, int *cycle, int len) {
     CycleSetEntry *entry;
@@ -99,6 +104,8 @@ int** walk_join(
         WalkMapEntry *entry2;
         HASH_FIND(hh, map2, &key, sizeof(WalkKey), entry2);
         if (!entry2) continue;
+        int total_len = k1 + k2 + 1;
+        int *joined = malloc(total_len * sizeof(int));
 
         for (int i = 0; i < entry1->count; i++) {
             int *w1 = entry1->walk_list[i];
@@ -107,8 +114,8 @@ int** walk_join(
                 int *w2 = entry2->walk_list[j];
 
                 // Allocate joined buffer once
-                int total_len = k1 + k2 + 1;
-                int *joined = malloc(total_len * sizeof(int));
+
+                // int *joined = malloc(total_len * sizeof(int));
 
                 // Join: w1[0..k1] + w2[1..k2]
                 memcpy(joined, w1, (k1 + 1) * sizeof(int));
@@ -127,16 +134,17 @@ int** walk_join(
                         }
 
                         result[count++] = canon;
-                        free(joined);
+                        // free(joined);
                     } else {
                         free(canon);
-                        free(joined);
+                        // free(joined);
                     }
                 } else {
-                    free(joined);
+                    // free(joined);
                 }
             }
         }
+        free(joined);
     }
 
     free(seen);
