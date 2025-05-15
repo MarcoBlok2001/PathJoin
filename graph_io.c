@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int** parse(FILE *file, int *n) {
+int** parse(FILE *file, int *n, int directed) {
     char line[256];
 
     if (fgets(line, sizeof(line), file) == NULL || sscanf(line, "*vertices %d", n) != 1) {
@@ -38,7 +38,7 @@ int** parse(FILE *file, int *n) {
                 continue;
             }
             adj[u][v] = 1;
-            adj[v][u] = 1;
+            if (!directed) adj[v][u] = 1;
         }
     }
 
