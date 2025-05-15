@@ -1,12 +1,6 @@
 // walkjoin.c
 #include "walkjoin.h"
 
-int compare_cycles(const int *a, const int *b, int len) {
-    for (int i = 0; i < len; i++) {
-        if (a[i] != b[i]) return a[i] - b[i];
-    }
-    return 0;
-}
 
 void store_cycle(CycleSetEntry **set, int *cycle, int len) {
     CycleSetEntry *entry = malloc(sizeof(CycleSetEntry));
@@ -126,14 +120,14 @@ int** walk_join(
 
                     if (!cycle_already_seen(cycle_set, canon, total_len - 1)) {
                         store_cycle(&cycle_set, canon, total_len - 1);
-                        free(canon);
 
                         if (count == result_capacity) {
                             result_capacity *= 2;
                             result = realloc(result, result_capacity * sizeof(int*));
                         }
 
-                        result[count++] = joined;
+                        result[count++] = canon;
+                        free(joined);
                     } else {
                         free(canon);
                         free(joined);

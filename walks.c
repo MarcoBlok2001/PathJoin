@@ -3,6 +3,8 @@
 #include "walks.h"
 #include "uthash.h"
 
+int COUNT = 0;
+
 void add_walk_to_map(WalkMapEntry **map, int *walk, int k) {
     WalkKey key = {walk[0], walk[k]};
     WalkMapEntry *entry = NULL;
@@ -30,6 +32,7 @@ static void dfs(int **adj, int n_vertices, int len, int node, int depth, int *pa
         int *walk = malloc((len + 1) * sizeof(int));
         memcpy(walk, path, (len + 1) * sizeof(int));
         add_walk_to_map(map, walk, len);
+        COUNT++;
         return;
     }
 
@@ -53,16 +56,18 @@ static void dfs(int **adj, int n_vertices, int len, int node, int depth, int *pa
 }
 
 
-WalkMapEntry* get_walks(int **adj, int n_vertices, int len) {
+WalkMapEntry* get_walks(int **adj, int *degrees, int n_vertices, int len) {
     WalkMapEntry *map = NULL;
     int *path = malloc((len + 1) * sizeof(int));
 
     for (int start = 0; start < n_vertices; start++) {
+        if (degrees[start] == 0) continue;
         path[0] = start;
         dfs(adj, n_vertices, len, start, 0, path, &map);
     }
 
     free(path);
+    printf("%d-walks:%d\n", len, COUNT);
     return map;
 }
 

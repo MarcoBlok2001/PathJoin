@@ -18,7 +18,7 @@ typedef struct {
     UT_hash_handle hh;
 } WalkMapEntry;
 
-WalkMapEntry* get_walks(int **adj, int n_vertices, int len);
+WalkMapEntry* get_walks(int **adj, int *degrees, int n_vertices, int len);
 
 void print_walk_map(WalkMapEntry*walks, int len);
 

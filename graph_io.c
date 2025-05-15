@@ -46,6 +46,21 @@ int** parse(FILE *file, int *n, int directed) {
     return adj;
 }
 
+int *count_degrees(int **adj, int n) {
+    int *degrees = malloc(n * sizeof(int));
+
+    for (int i = 0; i < n; i++) {
+        int degree = 0;
+        for (int j = 0; j < n; j++) {
+            if (adj[i][j] == 1) {
+                degree++;
+            }
+        }
+        degrees[i] = degree;
+    }
+    return degrees;
+}
+
 void print_adjacency_matrix(int **adj, int n) {
     printf("Adjacency Matrix (%d x %d):\n", n, n);
     for (int i = 0; i < n; i++) {
@@ -56,9 +71,10 @@ void print_adjacency_matrix(int **adj, int n) {
     }
 }
 
-void free_adjacency_matrix(int **adj, int n) {
+void free_adjacency_matrix(int **adj, int *degrees, int n) {
     for (int i = 0; i < n; i++) {
         free(adj[i]);
     }
+    free(degrees);
     free(adj);
 }

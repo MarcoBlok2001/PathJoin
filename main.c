@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "graph_io.h"
+#include "pre_processing.h"
 #include "walks.h"
 #include "walkjoin.h"
 
@@ -17,14 +18,14 @@ typedef struct {
 
 int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
     if (argc < 3) {
-        fprintf(stderr, "Usage: %s <graph_file> <cyclesize> [-u true|false] [-c int1 int2 int3 int4]\n", argv[0]);
+        fprintf(stderr, "Usage: %s <graph_file> <cyclesize> [-d true|false] [-c int1 int2 int3 int4]\n", argv[0]);
         return 0;
     }
 
     opts->filename = argv[1];
     opts->cyclesize = atoi(argv[2]);
-    if (opts->cyclesize <= 0) {
-        fprintf(stderr, "Invalid cyclesize: %s\n", argv[2]);
+    if (opts->cyclesize < 3) {
+        fprintf(stderr, "Invalid cyclesize: %s. Must be of value 3 or bigger.\n", argv[2]);
         return 0;
     }
 
@@ -32,15 +33,15 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
     opts->config_len = 0;
 
     for (int i = 3; i < argc; i++) {
-        if (strcmp(argv[i], "-u") == 0) {
+        if (strcmp(argv[i], "-d") == 0) {
             if (i + 1 >= argc) {
-                fprintf(stderr, "Missing value for -u\n");
+                fprintf(stderr, "Missing value for -d\n");
                 return 0;
             }
             opts->directed = strcmp(argv[i + 1], "true") == 0 ? 1 :
                            strcmp(argv[i + 1], "false") == 0 ? 0 : -1;
             if (opts->directed == -1) {
-                fprintf(stderr, "Invalid value for -u (expected true/false): %s\n", argv[i + 1]);
+                fprintf(stderr, "Invalid value for -d (expected true/false): %s\n", argv[i + 1]);
                 return 0;
             }
             i++;
@@ -76,7 +77,7 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
     return 1;
 }
 
-WalkMapEntry** get_walk_configs(ProgramOptions* opts, int** adj, int num_vertices, int* unique_count_ptr) {
+WalkMapEntry** get_walk_configs(ProgramOptions* opts, int** adj, int* degrees, int num_vertices, int* unique_count_ptr) {
     int walk_sizes[MAX_CONFIG];  // Store unique walk sizes
     WalkMapEntry* walks[MAX_CONFIG] = {NULL};
     int unique_count = 0;
@@ -84,13 +85,12 @@ WalkMapEntry** get_walk_configs(ProgramOptions* opts, int** adj, int num_vertice
     // Default config if none provided
     if (opts->config_len == 0) {
         int half = opts->cyclesize / 2;
+        opts->config_len = 2;
+        opts->config[0] = half;
+
         if (opts->cyclesize % 2 == 0) {
-            opts->config_len = 2;
-            opts->config[0] = half;
             opts->config[1] = half;
         } else {
-            opts->config_len = 2;
-            opts->config[0] = half;
             opts->config[1] = half + 1;
         }
     }
@@ -105,7 +105,7 @@ WalkMapEntry** get_walk_configs(ProgramOptions* opts, int** adj, int num_vertice
         }
         if (!found) {
             walk_sizes[unique_count] = opts->config[i];
-            walks[unique_count] = get_walks(adj, num_vertices, walk_sizes[unique_count]);
+            walks[unique_count] = get_walks(adj, degrees, num_vertices, walk_sizes[unique_count]);
             unique_count++;
         }
     }
@@ -128,8 +128,6 @@ WalkMapEntry** get_walk_configs(ProgramOptions* opts, int** adj, int num_vertice
     *unique_count_ptr = unique_count;  // Write back the result
     return config_walks;
 }
-
-
 
 
 int** run_walk_join(WalkMapEntry** config_walks, ProgramOptions* opts, int num_vertices, int *cycle_count) {
@@ -176,21 +174,27 @@ int main(int argc, char* argv[]) {
         perror("Error during adj matrix creation.\n");
         return 1;
     }
+    int *degrees = count_degrees(adj, num_vertices);
+
+    // 2-core optimization
+    if (!opts.directed) {
+        twocores(adj, degrees, num_vertices);
+    }
 
     // Get walks
     int unique_count = 0;
-    WalkMapEntry **config_walks = get_walk_configs(&opts, adj, num_vertices, &unique_count);
+    WalkMapEntry **config_walks = get_walk_configs(&opts, adj, degrees, num_vertices, &unique_count);
     printf("Got walks\n");
 
     // Debug prints
     printf("filename: %s\n", opts.filename);
     printf("cyclesize: %d\n", opts.cyclesize);
-    printf("u_flag: %s\n", opts.directed ? "true" : "false");
-    printf("config (%d values): [ ", opts.config_len);
+    printf("d_flag: %s\n", opts.directed ? "true" : "false");
+    printf("config (%d values): [", opts.config_len);
     for (int i = 0; i < opts.config_len; i++) {
-        printf("%d ", opts.config[i]);
+        printf(" - %d", opts.config[i]);
     }
-    printf("]\n");
+    printf(" - ]\n");
 
     // Get cycles
     int cycle_count = 0;
@@ -198,9 +202,12 @@ int main(int argc, char* argv[]) {
 
     printf("cycle_count: %d\n", cycle_count);
 
-
-
-
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j <= opts.cyclesize; j++) {
+            printf("%d ", cycles[i][j]);
+        }
+        printf("\n");
+    }
 
     // Free cycles
     for (int i = 0; i < cycle_count; i++) {
@@ -215,7 +222,7 @@ int main(int argc, char* argv[]) {
     free(config_walks);
 
     // free adj matrix
-    free_adjacency_matrix(adj, num_vertices);
+    free_adjacency_matrix(adj, degrees, num_vertices);
 
     return 0;
 }
