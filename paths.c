@@ -41,10 +41,8 @@ static void dfs(int **adj, int n_vertices, int len, int node, int depth, int *pa
             int visited = 0;
             for (int i = 0; i <= depth; i++) {
                 if (path[i] == neighbor) {
-                    if (!(i == 0 && depth + 1 == len && neighbor == path[0])) {
-                        visited = 1;
-                        break;
-                    }
+                    visited = 1;
+                    break;
                 }
             }
             if (visited) continue;
