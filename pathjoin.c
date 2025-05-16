@@ -105,7 +105,7 @@ int** path_join(
         HASH_FIND(hh, map2, &key, sizeof(PathKey), entry2);
         if (!entry2) continue;
 
-        
+
         int total_len = k1 + k2 + 1;
         int *joined = malloc(total_len * sizeof(int));
 
