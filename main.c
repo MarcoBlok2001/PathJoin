@@ -24,7 +24,7 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
 
     opts->filename = argv[1];
     opts->cyclesize = atoi(argv[2]);
-    if (opts->cyclesize < 3) {
+    if (opts->cyclesize < 2) {
         fprintf(stderr, "Invalid cyclesize: %s. Must be of value 3 or bigger.\n", argv[2]);
         return 0;
     }
@@ -77,7 +77,7 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
     return 1;
 }
 
-PathMapEntry** get_path_configs(ProgramOptions* opts, int** adj, int* degrees, int num_vertices, int* unique_count_ptr) {
+PathMapEntry** get_path_configs(ProgramOptions* opts, int** adj, int* degrees, int num_vertices, int* unique_count_ptr, PathMapEntry*** unique_paths) {
     int path_sizes[MAX_CONFIG];  // Store unique path sizes
     PathMapEntry* paths[MAX_CONFIG] = {NULL};
     int unique_count = 0;
@@ -116,6 +116,14 @@ PathMapEntry** get_path_configs(ProgramOptions* opts, int** adj, int* degrees, i
         return NULL;
     }
 
+    *unique_paths = malloc(sizeof(PathMapEntry*) * MAX_CONFIG);
+    if (!(*unique_paths)) {
+        fprintf(stderr, "Memory allocation failed for unique_paths\n");
+        return NULL;
+    }
+
+
+
     for (int i = 0; i < opts->config_len; i++) {
         for (int j = 0; j < unique_count; j++) {
             if (opts->config[i] == path_sizes[j]) {
@@ -123,6 +131,10 @@ PathMapEntry** get_path_configs(ProgramOptions* opts, int** adj, int* degrees, i
                 break;
             }
         }
+    }
+
+    for (int i = 0; i < unique_count; i++) {
+        (*unique_paths)[i] = paths[i];
     }
 
     *unique_count_ptr = unique_count;  // Write back the result
@@ -183,7 +195,8 @@ int main(int argc, char* argv[]) {
 
     // Get paths
     int unique_count = 0;
-    PathMapEntry **config_paths = get_path_configs(&opts, adj, degrees, num_vertices, &unique_count);
+    PathMapEntry **unique_paths = NULL;
+    PathMapEntry **config_paths = get_path_configs(&opts, adj, degrees, num_vertices, &unique_count, &unique_paths);
     printf("Got paths\n");
 
     // Debug prints
@@ -217,7 +230,7 @@ int main(int argc, char* argv[]) {
 
     // free paths and path config.
     for (int i = 0; i < unique_count; i++) {
-        free_path_map(config_paths[i]);
+        free_path_map(unique_paths[i]);
     }
     free(config_paths);
 

@@ -10,8 +10,6 @@ void store_cycle(CycleSetEntry **set, int *cycle, int len) {
     HASH_ADD_KEYPTR(hh, *set, entry->cycle, len * sizeof(int), entry);
 }
 
-#include <stdlib.h>
-
 // Rotate the cycle so that start_index becomes the first element
 void rotate_cycle(int *cycle, int len, int start_index, int *result) {
     for (int i = 0; i <= len; i++) {
@@ -97,6 +95,9 @@ int** path_join(
     int *seen = calloc(max_nodes, sizeof(int));  // zeroed on alloc
     CycleSetEntry *cycle_set = NULL;
 
+    int total_len = k1 + k2 + 1;
+    int *joined = malloc(total_len * sizeof(int));
+
     PathMapEntry *entry1, *tmp1;
     HASH_ITER(hh, map1, entry1, tmp1) {
         // Reverse key to match end of path1 with start of path2
@@ -105,19 +106,11 @@ int** path_join(
         HASH_FIND(hh, map2, &key, sizeof(PathKey), entry2);
         if (!entry2) continue;
 
-
-        int total_len = k1 + k2 + 1;
-        int *joined = malloc(total_len * sizeof(int));
-
         for (int i = 0; i < entry1->count; i++) {
             int *w1 = entry1->path_list[i];
 
             for (int j = 0; j < entry2->count; j++) {
                 int *w2 = entry2->path_list[j];
-
-                // Allocate joined buffer once
-
-                // int *joined = malloc(total_len * sizeof(int));
 
                 // Join: w1[0..k1] + w2[1..k2]
                 memcpy(joined, w1, (k1 + 1) * sizeof(int));
@@ -137,20 +130,16 @@ int** path_join(
                         }
 
                         result[count++] = canon;
-                        // free(joined);
                     } else {
                         free(canon);
-                        // free(joined);
                     }
-                } else {
-                    // free(joined);
                 }
             }
         }
-        free(joined);
     }
 
     free(seen);
+    free(joined);
 
     // Free the cycle set
     CycleSetEntry *centry, *tmp;
@@ -177,6 +166,9 @@ int** path_join_three(
 
     int *seen = calloc(max_nodes, sizeof(int));  // zeroed for is_simple_cycle
     CycleSetEntry *cycle_set = NULL;
+
+    int total_len = k1 + k2 + k3 + 1;
+    int *joined = malloc((total_len) * sizeof(int));
 
     PathMapEntry *entry1, *tmp1;
     HASH_ITER(hh, map1, entry1, tmp1) {
@@ -206,8 +198,6 @@ int** path_join_three(
                         int *w3 = entry3->path_list[m];
                         if (w3 == w1 || w3 == w2) continue;
 
-                        int total_len = k1 + k2 + k3;
-                        int *joined = malloc((total_len + 1) * sizeof(int));
 
                         // Copy w1[0..k1]
                         memcpy(joined, w1, (k1 + 1) * sizeof(int));
@@ -216,25 +206,21 @@ int** path_join_three(
                         // Copy w3[1..k3]
                         memcpy(joined + k1 + k2 + 1, w3 + 1, k3 * sizeof(int));
 
-                        if (is_simple_cycle(joined, total_len, seen, max_nodes)) {
-                            int *canon = canonical_cycle(joined, total_len);
+                        if (is_simple_cycle(joined, total_len - 1, seen, max_nodes)) {
+                            int *canon = canonical_cycle(joined, total_len - 1);
 
-                            if (!cycle_already_seen(cycle_set, canon, total_len)) {
-                                store_cycle(&cycle_set, canon, total_len);
-                                free(canon);
+                            if (!cycle_already_seen(cycle_set, canon, total_len - 1)) {
+                                store_cycle(&cycle_set, canon, total_len - 1);
 
                                 if (count == result_capacity) {
                                     result_capacity *= 2;
                                     result = realloc(result, result_capacity * sizeof(int*));
                                 }
 
-                                result[count++] = joined;
+                                result[count++] = canon;
                             } else {
                                 free(canon);
-                                free(joined);
                             }
-                        } else {
-                            free(joined);
                         }
                     }
                 }
@@ -243,6 +229,7 @@ int** path_join_three(
     }
 
     free(seen);
+    free(joined);
 
     // Free the cycle set
     CycleSetEntry *centry, *tmp;
@@ -270,6 +257,9 @@ int** path_join_four(
 
     int *seen = calloc(max_nodes, sizeof(int));  // for is_simple_cycle
     CycleSetEntry *cycle_set = NULL;
+
+    int total_len = k1 + k2 + k3 + k4;
+    int *joined = malloc((total_len + 1) * sizeof(int));
 
     PathMapEntry *entry1, *tmp1;
     HASH_ITER(hh, map1, entry1, tmp1) {
@@ -309,9 +299,6 @@ int** path_join_four(
                                 int *w4 = entry4->path_list[n];
                                 if (w4 == w1 || w4 == w2 || w4 == w3) continue;
 
-                                int total_len = k1 + k2 + k3 + k4;
-                                int *joined = malloc((total_len + 1) * sizeof(int));
-
                                 // w1[0..k1]
                                 memcpy(joined, w1, (k1 + 1) * sizeof(int));
                                 // w2[1..k2]
@@ -325,20 +312,16 @@ int** path_join_four(
                                     int *canon = canonical_cycle(joined, total_len);
                                     if (!cycle_already_seen(cycle_set, canon, total_len)) {
                                         store_cycle(&cycle_set, canon, total_len);
-                                        free(canon);
 
                                         if (count == result_capacity) {
                                             result_capacity *= 2;
                                             result = realloc(result, result_capacity * sizeof(int*));
                                         }
 
-                                        result[count++] = joined;
+                                        result[count++] = canon;
                                     } else {
                                         free(canon);
-                                        free(joined);
                                     }
-                                } else {
-                                    free(joined);
                                 }
                             }
                         }
@@ -349,6 +332,7 @@ int** path_join_four(
     }
 
     free(seen);
+    free(joined);
 
     // Free cycle set
     CycleSetEntry *centry, *tmp;
