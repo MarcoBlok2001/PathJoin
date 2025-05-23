@@ -18,6 +18,9 @@ int** parse(FILE *file, int *n, int directed) {
         return NULL;
     }
 
+    // offset if graph vertices start at index 1.
+    *n += 1;
+
     int **adj = malloc(*n * sizeof(int *));
     for (int i = 0; i < *n; i++) {
         adj[i] = calloc(*n, sizeof(int));

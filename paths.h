@@ -3,7 +3,6 @@
 #define PATHS_H
 
 #include <stdio.h>
-#include <string.h>
 #include "uthash.h"
 
 typedef struct {
