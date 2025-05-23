@@ -10,15 +10,17 @@
 
 typedef struct {
     char* filename;
+    char* outfilename;
     int cyclesize;
     int directed;
+    int verbose;
     int config[MAX_CONFIG];
     int config_len;
 } ProgramOptions;
 
 int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
     if (argc < 3) {
-        fprintf(stderr, "Usage: %s <graph_file> <cyclesize> [-d true|false] [-c int1 int2 int3 int4]\n", argv[0]);
+        fprintf(stderr, "Usage: %s <graph_file> <cyclesize> [-d true|false] [-v true|false] [-c int1 int2 int3 int4]\n", argv[0]);
         return 0;
     }
 
@@ -30,7 +32,9 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
     }
 
     opts->directed = 0;
+    opts->verbose = 0;
     opts->config_len = 0;
+    opts->outfilename = NULL;
 
     for (int i = 3; i < argc; i++) {
         if (strcmp(argv[i], "-d") == 0) {
@@ -45,6 +49,8 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
                 return 0;
             }
             i++;
+        } else if (strcmp(argv[i], "-v") == 0) {
+            opts->verbose = 1;
         } else if (strcmp(argv[i], "-c") == 0) {
             int j = 0;
             int c_sum = 0;
@@ -68,6 +74,36 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
             }
             opts->config_len = j;
             i += j;
+        } else if (strcmp(argv[i], "-o") == 0) {
+            if (i + 1 >= argc || argv[i + 1][0] == '-') {
+                // Generate default name based on input filename, stripping extension
+                const char* input = opts->filename;
+                const char* suffix = "_output.txt";
+
+                // Find last '/' and '.' after that
+                const char* last_slash = strrchr(input, '/');
+                const char* base = last_slash ? last_slash + 1 : input;
+                const char* dot = strrchr(base, '.');
+
+                size_t base_len = dot ? (size_t)(dot - input) : strlen(input);
+                size_t total_len = base_len + strlen(suffix) + 1;
+
+                opts->outfilename = (char*)malloc(total_len);
+                if (!opts->outfilename) {
+                    fprintf(stderr, "Memory allocation failed for output filename\n");
+                    return 0;
+                }
+
+                snprintf(opts->outfilename, total_len, "%.*s%s", (int)base_len, input, suffix);
+            } else {
+                // Use provided output filename
+                opts->outfilename = strdup(argv[i + 1]);
+                if (!opts->outfilename) {
+                    fprintf(stderr, "Memory allocation failed for output filename\n");
+                    return 0;
+                }
+                i++;
+            }
         } else {
             fprintf(stderr, "Unknown option or misplaced argument: %s\n", argv[i]);
             return 0;
@@ -75,6 +111,24 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
     }
 
     return 1;
+}
+
+void write_cycles_to_file(const char* filename, int** cycles, int cycle_count, int cyclesize) {
+    FILE* out = fopen(filename, "w");
+    if (!out) {
+        fprintf(stderr, "Error: Could not open output file '%s' for writing.\n", filename);
+        return;
+    }
+
+    fprintf(out, "cycle_count: %d\n", cycle_count);
+    for (int i = 0; i < cycle_count; i++) {
+        for (int j = 0; j <= cyclesize; j++) {
+            fprintf(out, "%d ", cycles[i][j]);
+        }
+        fprintf(out, "\n");
+    }
+
+    fclose(out);
 }
 
 PathMapEntry** get_path_configs(ProgramOptions* opts, int** adj, int* degrees, int num_vertices, int* unique_count_ptr, PathMapEntry*** unique_paths) {
@@ -144,23 +198,24 @@ PathMapEntry** get_path_configs(ProgramOptions* opts, int** adj, int* degrees, i
 
 int** run_path_join(PathMapEntry** config_paths, ProgramOptions* opts, int num_vertices, int *cycle_count) {
     int config_len = opts->config_len;
+    int verbose = opts->verbose;
     int *config = opts->config;
 
     if (config_len == 2) {
         return path_join(config_paths[0], config[0],
                          config_paths[1], config[1],
-                         num_vertices, cycle_count);
+                         num_vertices, cycle_count, verbose);
     } else if (config_len == 3) {
         return path_join_three(config_paths[0], config[0],
                                config_paths[1], config[1],
                                config_paths[2], config[2],
-                               num_vertices, cycle_count);
+                               num_vertices, cycle_count, verbose);
     } else if (config_len == 4) {
         return path_join_four(config_paths[0], config[0],
                               config_paths[1], config[1],
                               config_paths[2], config[2],
                               config_paths[3], config[3],
-                              num_vertices, cycle_count);
+                              num_vertices, cycle_count, verbose);
     } else {
         fprintf(stderr, "Unsupported config length: %d\n", config_len);
         return NULL;
@@ -190,34 +245,36 @@ int main(int argc, char* argv[]) {
 
     // 2-core optimization
     twocores(adj, degrees, num_vertices, opts.directed);
-    
+
     // Get paths
     int unique_count = 0;
     PathMapEntry **unique_paths = NULL;
     PathMapEntry **config_paths = get_path_configs(&opts, adj, degrees, num_vertices, &unique_count, &unique_paths);
-    printf("Got paths\n");
+
 
     // Debug prints
-    printf("filename: %s\n", opts.filename);
-    printf("cyclesize: %d\n", opts.cyclesize);
-    printf("d_flag: %s\n", opts.directed ? "true" : "false");
-    printf("config (%d values): [", opts.config_len);
-    for (int i = 0; i < opts.config_len; i++) {
-        printf(" - %d", opts.config[i]);
+    if (opts.verbose) {
+        printf("filename: %s\n", opts.filename);
+        printf("cyclesize: %d\n", opts.cyclesize);
+        printf("directed: %s\n", opts.directed ? "true" : "false");
+        printf("config (%d-join): [", opts.config_len);
+        for (int i = 0; i < opts.config_len; i++) {
+            printf(" - %d", opts.config[i]);
+        }
+        printf(" - ]\n");
     }
-    printf(" - ]\n");
 
     // Get cycles
     int cycle_count = 0;
     int **cycles = run_path_join(config_paths, &opts, num_vertices, &cycle_count);
 
-    printf("cycle_count: %d\n", cycle_count);
+    printf("\ncycle_count: %d\n", cycle_count);
 
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j <= opts.cyclesize; j++) {
-            printf("%d ", cycles[i][j]);
+    if (opts.outfilename != NULL) {
+        write_cycles_to_file(opts.outfilename, cycles, cycle_count, opts.cyclesize);
+        if (opts.verbose) {
+            printf("Cycles written to output file: %s\n", opts.outfilename);
         }
-        printf("\n");
     }
 
     // Free cycles
@@ -234,6 +291,10 @@ int main(int argc, char* argv[]) {
 
     // free adj matrix
     free_adjacency_matrix(adj, degrees, num_vertices);
+
+    if (opts.outfilename) {
+        free(opts.outfilename);
+    }
 
     return 0;
 }

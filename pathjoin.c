@@ -86,7 +86,9 @@ static int is_simple_cycle(int *path, int k, int *seen, int max_nodes) {
 int** path_join(
     PathMapEntry *map1, int k1,
     PathMapEntry *map2, int k2,
-    int max_nodes, int *out_count
+    int max_nodes,
+    int *out_count,
+    int verbose
 ) {
     int result_capacity = 128;
     int **result = malloc(result_capacity * sizeof(int*));
@@ -122,6 +124,12 @@ int** path_join(
                     int *canon = canonical_cycle(joined, total_len - 1);
 
                     if (!cycle_already_seen(cycle_set, canon, total_len - 1)) {
+                        if (verbose) {
+                            if (count % 1000 == 0) {
+                                printf("\rEnumerating cycles: %d", count);
+                                fflush(stdout);
+                            }
+                        }
                         store_cycle(&cycle_set, canon, total_len - 1);
 
                         if (count == result_capacity) {
@@ -158,7 +166,8 @@ int** path_join_three(
     PathMapEntry *map2, int k2,
     PathMapEntry *map3, int k3,
     int max_nodes,
-    int *out_count
+    int *out_count,
+    int verbose
 ) {
     int result_capacity = 128;
     int **result = malloc(result_capacity * sizeof(int*));
@@ -210,6 +219,11 @@ int** path_join_three(
                             int *canon = canonical_cycle(joined, total_len - 1);
 
                             if (!cycle_already_seen(cycle_set, canon, total_len - 1)) {
+                                if (verbose) {
+                                    if (count % 100000 == 0) {
+                                        printf("progress: %d cycles\n", count);
+                                    }
+                                }
                                 store_cycle(&cycle_set, canon, total_len - 1);
 
                                 if (count == result_capacity) {
@@ -249,7 +263,8 @@ int** path_join_four(
     PathMapEntry *map3, int k3,
     PathMapEntry *map4, int k4,
     int max_nodes,
-    int *out_count
+    int *out_count,
+    int verbose
 ) {
     int result_capacity = 128;
     int **result = malloc(result_capacity * sizeof(int*));
@@ -311,6 +326,11 @@ int** path_join_four(
                                 if (is_simple_cycle(joined, total_len, seen, max_nodes)) {
                                     int *canon = canonical_cycle(joined, total_len);
                                     if (!cycle_already_seen(cycle_set, canon, total_len)) {
+                                        if (verbose) {
+                                            if (count % 100000 == 0) {
+                                                printf("progress: %d cycles\n", count);
+                                            }
+                                        }
                                         store_cycle(&cycle_set, canon, total_len);
 
                                         if (count == result_capacity) {

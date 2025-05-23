@@ -18,14 +18,17 @@ int** path_join(
     PathMapEntry *map1, int k1,
     PathMapEntry *map2, int k2,
     int max_nodes,
-    int *out_count);
+    int *out_count,
+    int verbose
+);
 
 int** path_join_three(
     PathMapEntry *map1, int k1,
     PathMapEntry *map2, int k2,
     PathMapEntry *map3, int k3,
     int max_nodes,
-    int *out_count
+    int *out_count,
+    int verbose
 );
 
 int** path_join_four(
@@ -34,7 +37,8 @@ int** path_join_four(
     PathMapEntry *map3, int k3,
     PathMapEntry *map4, int k4,
     int max_nodes,
-    int *out_count
+    int *out_count,
+    int verbose
 );
 
-#endif // PATHWRAP_H
+#endif // PATHJOIN_H
