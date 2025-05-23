@@ -83,15 +83,13 @@ static int is_simple_cycle(int *path, int k, int *seen, int max_nodes) {
     return 1;
 }
 
-int** path_join(
+CycleSetEntry* path_join(
     PathMapEntry *map1, int k1,
     PathMapEntry *map2, int k2,
     int max_nodes,
     int *out_count,
     int verbose
 ) {
-    int result_capacity = 128;
-    int **result = malloc(result_capacity * sizeof(int*));
     int count = 0;
 
     int *seen = calloc(max_nodes, sizeof(int));  // zeroed on alloc
@@ -123,21 +121,15 @@ int** path_join(
                 if (is_simple_cycle(joined, total_len - 1, seen, max_nodes)) {
                     int *canon = canonical_cycle(joined, total_len - 1);
 
-                    if (!cycle_already_seen(cycle_set, canon, total_len - 1)) {
+                    if (!cycle_already_seen(cycle_set, canon, total_len)) {
                         if (verbose) {
                             if (count % 1000 == 0) {
                                 printf("\rEnumerating cycles: %d", count);
                                 fflush(stdout);
                             }
                         }
-                        store_cycle(&cycle_set, canon, total_len - 1);
-
-                        if (count == result_capacity) {
-                            result_capacity *= 2;
-                            result = realloc(result, result_capacity * sizeof(int*));
-                        }
-
-                        result[count++] = canon;
+                        store_cycle(&cycle_set, canon, total_len);
+                        count++;
                     } else {
                         free(canon);
                     }
@@ -149,19 +141,11 @@ int** path_join(
     free(seen);
     free(joined);
 
-    // Free the cycle set
-    CycleSetEntry *centry, *tmp;
-    HASH_ITER(hh, cycle_set, centry, tmp) {
-        HASH_DEL(cycle_set, centry);
-        free(centry->cycle);
-        free(centry);
-    }
-
     *out_count = count;
-    return result;
+    return cycle_set;
 }
 
-int** path_join_three(
+CycleSetEntry* path_join_three(
     PathMapEntry *map1, int k1,
     PathMapEntry *map2, int k2,
     PathMapEntry *map3, int k3,
@@ -169,8 +153,6 @@ int** path_join_three(
     int *out_count,
     int verbose
 ) {
-    int result_capacity = 128;
-    int **result = malloc(result_capacity * sizeof(int*));
     int count = 0;
 
     int *seen = calloc(max_nodes, sizeof(int));  // zeroed for is_simple_cycle
@@ -218,20 +200,15 @@ int** path_join_three(
                         if (is_simple_cycle(joined, total_len - 1, seen, max_nodes)) {
                             int *canon = canonical_cycle(joined, total_len - 1);
 
-                            if (!cycle_already_seen(cycle_set, canon, total_len - 1)) {
+                            if (!cycle_already_seen(cycle_set, canon, total_len)) {
                                 if (verbose) {
-                                    if (count % 100000 == 0) {
-                                        printf("progress: %d cycles\n", count);
+                                    if (count % 1000 == 0) {
+                                        printf("\rEnumerating cycles: %d", count);
+                                        fflush(stdout);
                                     }
                                 }
-                                store_cycle(&cycle_set, canon, total_len - 1);
-
-                                if (count == result_capacity) {
-                                    result_capacity *= 2;
-                                    result = realloc(result, result_capacity * sizeof(int*));
-                                }
-
-                                result[count++] = canon;
+                                store_cycle(&cycle_set, canon, total_len);
+                                count++;
                             } else {
                                 free(canon);
                             }
@@ -245,19 +222,11 @@ int** path_join_three(
     free(seen);
     free(joined);
 
-    // Free the cycle set
-    CycleSetEntry *centry, *tmp;
-    HASH_ITER(hh, cycle_set, centry, tmp) {
-        HASH_DEL(cycle_set, centry);
-        free(centry->cycle);
-        free(centry);
-    }
-
     *out_count = count;
-    return result;
+    return cycle_set;
 }
 
-int** path_join_four(
+CycleSetEntry* path_join_four(
     PathMapEntry *map1, int k1,
     PathMapEntry *map2, int k2,
     PathMapEntry *map3, int k3,
@@ -266,15 +235,13 @@ int** path_join_four(
     int *out_count,
     int verbose
 ) {
-    int result_capacity = 128;
-    int **result = malloc(result_capacity * sizeof(int*));
     int count = 0;
 
     int *seen = calloc(max_nodes, sizeof(int));  // for is_simple_cycle
     CycleSetEntry *cycle_set = NULL;
 
-    int total_len = k1 + k2 + k3 + k4;
-    int *joined = malloc((total_len + 1) * sizeof(int));
+    int total_len = k1 + k2 + k3 + k4 + 1;
+    int *joined = malloc((total_len) * sizeof(int));
 
     PathMapEntry *entry1, *tmp1;
     HASH_ITER(hh, map1, entry1, tmp1) {
@@ -323,22 +290,17 @@ int** path_join_four(
                                 // w4[1..k4]
                                 memcpy(joined + k1 + k2 + k3 + 1, w4 + 1, k4 * sizeof(int));
 
-                                if (is_simple_cycle(joined, total_len, seen, max_nodes)) {
-                                    int *canon = canonical_cycle(joined, total_len);
+                                if (is_simple_cycle(joined, total_len - 1, seen, max_nodes)) {
+                                    int *canon = canonical_cycle(joined, total_len - 1);
                                     if (!cycle_already_seen(cycle_set, canon, total_len)) {
                                         if (verbose) {
-                                            if (count % 100000 == 0) {
-                                                printf("progress: %d cycles\n", count);
+                                            if (count % 1000 == 0) {
+                                                printf("\rEnumerating cycles: %d", count);
+                                                fflush(stdout);
                                             }
                                         }
                                         store_cycle(&cycle_set, canon, total_len);
-
-                                        if (count == result_capacity) {
-                                            result_capacity *= 2;
-                                            result = realloc(result, result_capacity * sizeof(int*));
-                                        }
-
-                                        result[count++] = canon;
+                                        count++;
                                     } else {
                                         free(canon);
                                     }
@@ -354,16 +316,8 @@ int** path_join_four(
     free(seen);
     free(joined);
 
-    // Free cycle set
-    CycleSetEntry *centry, *tmp;
-    HASH_ITER(hh, cycle_set, centry, tmp) {
-        HASH_DEL(cycle_set, centry);
-        free(centry->cycle);
-        free(centry);
-    }
-
     *out_count = count;
-    return result;
+    return cycle_set;
 }
 
 

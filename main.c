@@ -113,7 +113,7 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
     return 1;
 }
 
-void write_cycles_to_file(const char* filename, int** cycles, int cycle_count, int cyclesize) {
+void write_cycles_to_file(const char* filename, CycleSetEntry* cycles, int cycle_count, int cyclesize) {
     FILE* out = fopen(filename, "w");
     if (!out) {
         fprintf(stderr, "Error: Could not open output file '%s' for writing.\n", filename);
@@ -121,9 +121,11 @@ void write_cycles_to_file(const char* filename, int** cycles, int cycle_count, i
     }
 
     fprintf(out, "cycle_count: %d\n", cycle_count);
-    for (int i = 0; i < cycle_count; i++) {
+
+    CycleSetEntry *entry, *tmp;
+    HASH_ITER(hh, cycles, entry, tmp) {
         for (int j = 0; j <= cyclesize; j++) {
-            fprintf(out, "%d ", cycles[i][j]);
+            fprintf(out, "%d ", entry->cycle[j]);
         }
         fprintf(out, "\n");
     }
@@ -196,7 +198,7 @@ PathMapEntry** get_path_configs(ProgramOptions* opts, int** adj, int* degrees, i
 }
 
 
-int** run_path_join(PathMapEntry** config_paths, ProgramOptions* opts, int num_vertices, int *cycle_count) {
+CycleSetEntry* run_path_join(PathMapEntry** config_paths, ProgramOptions* opts, int num_vertices, int *cycle_count) {
     int config_len = opts->config_len;
     int verbose = opts->verbose;
     int *config = opts->config;
@@ -266,7 +268,7 @@ int main(int argc, char* argv[]) {
 
     // Get cycles
     int cycle_count = 0;
-    int **cycles = run_path_join(config_paths, &opts, num_vertices, &cycle_count);
+    CycleSetEntry*cycles = run_path_join(config_paths, &opts, num_vertices, &cycle_count);
 
     printf("\ncycle_count: %d\n", cycle_count);
 
@@ -278,10 +280,16 @@ int main(int argc, char* argv[]) {
     }
 
     // Free cycles
-    for (int i = 0; i < cycle_count; i++) {
-        free(cycles[i]);
+    // for (int i = 0; i < cycle_count; i++) {
+    //     free(cycles[i]);
+    // }
+    // free(cycles);
+    CycleSetEntry *centry, *tmp;
+    HASH_ITER(hh, cycles, centry, tmp) {
+        HASH_DEL(cycles, centry);
+        free(centry->cycle);
+        free(centry);
     }
-    free(cycles);
 
     // free paths and path config.
     for (int i = 0; i < unique_count; i++) {

@@ -1,7 +1,7 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -O3 -Wall -Wextra -std=c11
-# CFLAGS = -fsanitize=address -O3 -Wall -Wextra -std=c11
+# CFLAGS = -O3 -Wall -Wextra -std=c11
+CFLAGS = -fsanitize=address -O3 -Wall -Wextra -std=c11
 # CFLAGS = -O3 -Wall -Wextra -std=c11
 
 # Source files and object files

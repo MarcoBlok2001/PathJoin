@@ -14,7 +14,7 @@ typedef struct {
     UT_hash_handle hh;
 } CycleSetEntry;
 
-int** path_join(
+CycleSetEntry* path_join(
     PathMapEntry *map1, int k1,
     PathMapEntry *map2, int k2,
     int max_nodes,
@@ -22,7 +22,7 @@ int** path_join(
     int verbose
 );
 
-int** path_join_three(
+CycleSetEntry* path_join_three(
     PathMapEntry *map1, int k1,
     PathMapEntry *map2, int k2,
     PathMapEntry *map3, int k3,
@@ -31,7 +31,7 @@ int** path_join_three(
     int verbose
 );
 
-int** path_join_four(
+CycleSetEntry* path_join_four(
     PathMapEntry *map1, int k1,
     PathMapEntry *map2, int k2,
     PathMapEntry *map3, int k3,
