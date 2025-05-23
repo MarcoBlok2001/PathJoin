@@ -49,13 +49,16 @@ int** parse(FILE *file, int *n, int directed) {
     return adj;
 }
 
-int *count_degrees(int **adj, int n) {
+int *count_degrees(int **adj, int n, int directed) {
     int *degrees = malloc(n * sizeof(int));
 
     for (int i = 0; i < n; i++) {
         int degree = 0;
         for (int j = 0; j < n; j++) {
             if (adj[i][j] == 1) {
+                degree++;
+            }
+            if (directed && adj[j][i] == 1) {
                 degree++;
             }
         }

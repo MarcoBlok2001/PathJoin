@@ -1,7 +1,7 @@
 // pre_processing.c
 #include "pre_processing.h"
 
-int* twocores(int** adj, int *degrees, int num_vertices) {
+int* twocores(int** adj, int *degrees, int num_vertices, int directed) {
     int changed = 1;
 
     while (changed == 1) {
@@ -12,9 +12,18 @@ int* twocores(int** adj, int *degrees, int num_vertices) {
                     if (adj[i][j] == 1) {
                         changed = 1;
                         adj[i][j] = 0;
+                        degrees[i]--;
+                        degrees[j]--;
+
+                        if (!directed) {
+                            adj[j][i] = 0;  // Only for undirected graphs
+                        }
+                        break;
+                    } else if (directed && adj[j][i] == 1) {
+                        changed = 1;
                         adj[j][i] = 0;
-                        degrees[i] = 0;
-                        degrees[j] -= 1;
+                        degrees[j]--;
+                        degrees[i]--;
                         break;
                     }
                 }
@@ -22,10 +31,10 @@ int* twocores(int** adj, int *degrees, int num_vertices) {
         }
     }
 
-    for (int i = 0; i < num_vertices; i++) {
-        printf("%d ", degrees[i]);
-    }
-    printf("\n");
+    // for (int i = 0; i < num_vertices; i++) {
+    //     printf("%d ", degrees[i]);
+    // }
+    // printf("\n");
 
     return degrees;
 }

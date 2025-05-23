@@ -186,13 +186,11 @@ int main(int argc, char* argv[]) {
         perror("Error during adj matrix creation.\n");
         return 1;
     }
-    int *degrees = count_degrees(adj, num_vertices);
+    int *degrees = count_degrees(adj, num_vertices, opts.directed);
 
     // 2-core optimization
-    if (!opts.directed) {
-        twocores(adj, degrees, num_vertices);
-    }
-
+    twocores(adj, degrees, num_vertices, opts.directed);
+    
     // Get paths
     int unique_count = 0;
     PathMapEntry **unique_paths = NULL;
