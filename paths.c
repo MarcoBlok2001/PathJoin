@@ -65,7 +65,8 @@ PathMapEntry* get_paths(int **adj, int *degrees, int n_vertices, int len) {
     }
 
     free(path);
-    printf("%d-paths:%d\n", len, COUNT);
+    printf("%d, ", COUNT);
+    // printf("%d-paths:%d\n", len, COUNT);
     return map;
 }
 

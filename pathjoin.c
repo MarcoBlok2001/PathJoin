@@ -4,8 +4,7 @@
 
 void store_cycle(CycleSetEntry **set, int *cycle, int len) {
     CycleSetEntry *entry = malloc(sizeof(CycleSetEntry));
-    entry->cycle = malloc(len * sizeof(int));
-    memcpy(entry->cycle, cycle, len * sizeof(int));
+    entry->cycle = cycle;
     entry->len = len;
     HASH_ADD_KEYPTR(hh, *set, entry->cycle, len * sizeof(int), entry);
 }

@@ -1,0 +1,5 @@
+Experiment 2: Effect of join split in join(2)
+1 bar plot: x-axis = different join splits, y-axis time taken.
+
+
+

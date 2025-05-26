@@ -270,7 +270,8 @@ int main(int argc, char* argv[]) {
     int cycle_count = 0;
     CycleSetEntry*cycles = run_path_join(config_paths, &opts, num_vertices, &cycle_count);
 
-    printf("\ncycle_count: %d\n", cycle_count);
+    // printf("\ncycle_count: %d\n", cycle_count);
+    printf("%d\n", cycle_count);
 
     if (opts.outfilename != NULL) {
         write_cycles_to_file(opts.outfilename, cycles, cycle_count, opts.cyclesize);
@@ -296,6 +297,7 @@ int main(int argc, char* argv[]) {
         free_path_map(unique_paths[i]);
     }
     free(config_paths);
+    free(unique_paths);
 
     // free adj matrix
     free_adjacency_matrix(adj, degrees, num_vertices);
