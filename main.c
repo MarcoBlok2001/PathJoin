@@ -13,6 +13,7 @@ typedef struct {
     char* outfilename;
     int cyclesize;
     int directed;
+    int twocore;
     int verbose;
     int config[MAX_CONFIG];
     int config_len;
@@ -32,6 +33,7 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
     }
 
     opts->directed = 0;
+    opts->twocore = 1;
     opts->verbose = 0;
     opts->config_len = 0;
     opts->outfilename = NULL;
@@ -51,6 +53,18 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
             i++;
         } else if (strcmp(argv[i], "-v") == 0) {
             opts->verbose = 1;
+        } else if (strcmp(argv[i], "-twocore") == 0) {
+            if (i + 1 >= argc) {
+                fprintf(stderr, "Missing value for -d\n");
+                return 0;
+            }
+            opts->twocore = strcmp(argv[i + 1], "true") == 0 ? 1 :
+                           strcmp(argv[i + 1], "false") == 0 ? 0 : -1;
+            if (opts->twocore == -1) {
+                fprintf(stderr, "Invalid value for -d (expected true/false): %s\n", argv[i + 1]);
+                return 0;
+            }
+            i++;
         } else if (strcmp(argv[i], "-c") == 0) {
             int j = 0;
             int c_sum = 0;
@@ -246,7 +260,7 @@ int main(int argc, char* argv[]) {
     int *degrees = count_degrees(adj, num_vertices, opts.directed);
 
     // 2-core optimization
-    twocores(adj, degrees, num_vertices, opts.directed);
+    if (opts.twocore) twocores(adj, degrees, num_vertices, opts.directed);
 
     // Get paths
     int unique_count = 0;
