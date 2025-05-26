@@ -32,6 +32,7 @@ done
 # ----------------------------
 # Define the splits manually (must sum to $K)
 declare -a SPLITS=("3 9" "4 8" "5 7" "6 6" "7 5" "8 4" "9 3")
+# declare -a SPLITS=("1 2 2 4" "1 1 2 5" "1 1 1 6" "2 2 2 3")
 
 for config_id in "${!SPLITS[@]}"; do
     split="${SPLITS[$config_id]}"

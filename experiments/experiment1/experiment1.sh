@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Constants
-NUM_GRAPHS=10
-NUM_RUNS=10
+NUM_GRAPHS=2
+NUM_RUNS=2
 JOIN_METHODS=(2 3 4)
 MIN_K_UNDIR=4
 MIN_K_DIR=4
@@ -38,10 +38,10 @@ generate_c_args() {
 
     local args=()
     for ((i = 0; i < j; i++)); do
-        if ((i < rem)); then
-            args+=($((base + 1)))
-        else
+        if ((i < j - rem)); then
             args+=($base)
+        else
+            args+=($((base + 1)))
         fi
     done
 
