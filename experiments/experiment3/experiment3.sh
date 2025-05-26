@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Constants
-NUM_GRAPHS=1
+NUM_GRAPHS=2
 NUM_RUNS=1
 K=6
 PROGRAM=../.././main
@@ -14,15 +14,15 @@ NUM_NODES_UNDIR=500
 
 mkdir -p "$OUTPUT_DIR" "$GRAPH_DIR"
 
-# Clustering coefficients to test
+# P coefficients to test
 P_COEFFS=(0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
 
 # CSV output
-SPLIT_CSV="$OUTPUT_DIR/clustering_results.csv"
-echo "graph_id,run,k,clustering,runtime_ms,cycles,paths" > "$SPLIT_CSV"
+SPLIT_CSV="$OUTPUT_DIR/p_results.csv"
+echo "graph_id,run,k,p,runtime_ms,cycles,paths" > "$SPLIT_CSV"
 
 # ----------------------------
-# 1. Graph Generation per Clustering Coefficient
+# 1. Graph Generation per P Coefficient
 # ----------------------------
 for p in "${P_COEFFS[@]}"; do
     safe_p=${p/./_}  # replace . with _ for filenames
@@ -39,11 +39,11 @@ done
 # ----------------------------
 # 2. Experiment Runs for K=6
 # ----------------------------
-for clustering in "${CLUSTERING_COEFFS[@]}"; do
-    safe_clustering=${clustering/./_}
+for p in "${P_COEFFS[@]}"; do
+    safe_p=${p/./_}
     for ((run = 0; run < NUM_RUNS; run++)); do
         for ((graph_id = 0; graph_id < NUM_GRAPHS; graph_id++)); do
-            GRAPH_FILE="$GRAPH_DIR/graph_${graph_id}_c${safe_clustering}.net"
+            GRAPH_FILE="$GRAPH_DIR/graph_${graph_id}_c${safe_p}.net"
 
             START=$(date +%s.%N)
             OUTPUT=$($PROGRAM "$GRAPH_FILE" "$K")
@@ -56,7 +56,7 @@ for clustering in "${CLUSTERING_COEFFS[@]}"; do
             NUM_PATHS=$((NUM_FIELDS - 1))
             PATH_COUNTS=$(echo "$LAST_LINE" | cut -d',' -f1-$NUM_PATHS | tr ',' '|')
 
-            echo "$graph_id,$run,$K,$clustering,$(echo "$RUNTIME * 1000" | bc),$CYCLES,$PATH_COUNTS" >> "$SPLIT_CSV"
+            echo "$graph_id,$run,$K,$p,$(echo "$RUNTIME * 1000" | bc),$CYCLES,$PATH_COUNTS" >> "$SPLIT_CSV"
         done
     done
 done

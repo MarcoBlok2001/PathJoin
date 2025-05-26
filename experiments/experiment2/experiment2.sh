@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Constants
-NUM_GRAPHS=10
-NUM_RUNS=10
-K=6
+NUM_GRAPHS=2
+NUM_RUNS=2
+K=12
 PROGRAM=../.././main
 OUTPUT_DIR=results
 GRAPH_DIR=graphs
@@ -31,7 +31,7 @@ done
 # 2. Experiment Runs for K=6 with all 2-way splits
 # ----------------------------
 # Define the splits manually (must sum to $K)
-declare -a SPLITS=("1 5" "2 4" "3 3" "4 2" "5 1")
+declare -a SPLITS=("3 9" "4 8" "5 7" "6 6" "7 5" "8 4" "9 3")
 
 for config_id in "${!SPLITS[@]}"; do
     split="${SPLITS[$config_id]}"
