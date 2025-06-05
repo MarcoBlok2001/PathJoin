@@ -1,0 +1,8 @@
+Experiment 2: Effect of two-core optimization
+
+one graph with randomly generated graphs
+one grpah with twitter
+one graph with google+.
+
+
+

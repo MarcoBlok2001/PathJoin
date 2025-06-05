@@ -1,0 +1,12 @@
+Experiment 1: Pathjoin performance comparison
+2 plots: x-axis = cycle length, y-axis is time taken
+1 plot for undirected graphs and 1 for directed graphs.
+
+Multiple lines for 2-join 3-join 4-join
+
+Most optimal split is used with descending order.
+
+for 7-cycles with 4 join: 2 2 2 1
+for 7-cycles with 3 join: 3 2 2
+for 7-cycles with 2 join: 4 3
+
