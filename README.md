@@ -36,7 +36,7 @@ make clean
 ## Usage
 
 ```
-./cycle_enum <filepath> <cycle length> [options]
+./main <filepath> <cycle length> [options]
 ```
 
 ### Required Parameters
@@ -55,7 +55,7 @@ make clean
 ## Example
 
 ```
-./cycle_enum graph.net 6 -d false -c 3 3 -o output.txt -v -twocore true
+./main graph.net 6 -d false -c 3 3 -o output.txt -v -twocore true
 ```
 
 This command will:
