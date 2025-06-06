@@ -33,14 +33,14 @@ for cid in sorted(grouped_dir['config_id'].unique()):
         subset['k'], subset['runtime_mean'], yerr=subset['runtime_std'],
         label=config_labels.get(cid, f'Config {cid}'), marker='o', linestyle='-', capsize=5
     )
-plt.title("Directed: Runtime vs Cycle Length", fontsize=16)
+plt.title("Directed: Runtime vs Cycle Length", fontsize=20)
 plt.yscale("log")
-plt.xlabel("Cycle Length (k)", fontsize=14)
-plt.ylabel("Runtime (s)", fontsize=14)
-plt.xticks(fontsize=12)
-plt.yticks(fontsize=12)
+plt.xlabel("Cycle Length (k)", fontsize=18)
+plt.ylabel("Runtime (s)", fontsize=18)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
 plt.grid(True)
-plt.legend(title="Graph Config", fontsize=12, title_fontsize=13)
+plt.legend(title="Graph Config", fontsize=16, title_fontsize=17)
 plt.tight_layout()
 plt.savefig("results/directed_runtime_vs_k.svg", format="svg")
 
@@ -52,14 +52,14 @@ for cid in sorted(grouped_dir['config_id'].unique()):
         subset['k'], subset['cycles_mean'], yerr=subset['cycles_std'],
         label=config_labels.get(cid, f'Config {cid}'), marker='o', linestyle='-', capsize=5
     )
-plt.title("Directed: Number of Cycles vs Cycle Length", fontsize=16)
+plt.title("Directed: Number of Cycles vs Cycle Length", fontsize=20)
 plt.yscale("log")
-plt.xlabel("Cycle Length (k)", fontsize=14)
-plt.ylabel("# Cycles", fontsize=14)
-plt.xticks(fontsize=12)
-plt.yticks(fontsize=12)
+plt.xlabel("Cycle Length (k)", fontsize=18)
+plt.ylabel("# Cycles", fontsize=18)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
 plt.grid(True)
-plt.legend(title="Graph Config", fontsize=12, title_fontsize=13)
+plt.legend(title="Graph Config", fontsize=16, title_fontsize=17)
 plt.tight_layout()
 plt.savefig("results/directed_cycles_vs_k.svg", format="svg")
 

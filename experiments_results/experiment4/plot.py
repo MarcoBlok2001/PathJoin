@@ -36,12 +36,14 @@ for gtype in [0, 1]:
             k_data['mean_degree'], k_data['runtime_mean'], yerr=k_data['runtime_std'],
             label=f'k={k_val}', marker='o', linestyle='-', capsize=4
         )
-    plt.title(f"{type_labels[gtype]}: Runtime vs Mean Degree", fontsize=16)
-    plt.xlabel("Mean Degree", fontsize=14)
-    plt.ylabel("Runtime (s)", fontsize=14)
+    plt.title(f"{type_labels[gtype]}: Runtime vs Mean Degree", fontsize=18)
+    plt.xlabel("Mean Degree", fontsize=16)
+    plt.ylabel("Runtime (s)", fontsize=16)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
     plt.yscale("log")
     plt.grid(True)
-    plt.legend(title="Cycle Length k", fontsize=12, title_fontsize=13)
+    plt.legend(title="Cycle Length k", fontsize=14, title_fontsize=15)
     plt.tight_layout()
     plt.savefig(f"results/{'normal' if gtype == 0 else 'scalefree'}_runtime_vs_mean.svg", format="svg")
 
@@ -55,12 +57,14 @@ for gtype in [0, 1]:
             k_data['mean_degree'], k_data['cycles_mean'], yerr=k_data['cycles_std'],
             label=f'k={k_val}', marker='o', linestyle='-', capsize=4
         )
-    plt.title(f"{type_labels[gtype]}: #Cycles vs Mean Degree", fontsize=16)
-    plt.xlabel("Mean Degree", fontsize=14)
-    plt.ylabel("Number of Cycles", fontsize=14)
+    plt.title(f"{type_labels[gtype]}: #Cycles vs Mean Degree", fontsize=18)
+    plt.xlabel("Mean Degree", fontsize=16)
+    plt.ylabel("Number of Cycles", fontsize=16)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
     plt.yscale("log")
     plt.grid(True)
-    plt.legend(title="Cycle Length k", fontsize=12, title_fontsize=13)
+    plt.legend(title="Cycle Length k", fontsize=14, title_fontsize=15)
     plt.tight_layout()
     plt.savefig(f"results/{'normal' if gtype == 0 else 'scalefree'}_cycles_vs_mean.svg", format="svg")
 

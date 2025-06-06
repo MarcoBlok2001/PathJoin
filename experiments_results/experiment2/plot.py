@@ -20,11 +20,11 @@ def plot_runtime_by_split(file_path, color, title, output_file):
     # Plot
     plt.figure(figsize=(8, 6))
     plt.bar(x, grouped['mean'], 0.6, yerr=grouped['std'], capsize=5, color=color)
-    plt.xticks(x, labels, fontsize=18)
-    plt.yticks(fontsize=18)
-    plt.title(title, fontsize=22)
-    plt.xlabel("Split configuration", fontsize=20)
-    plt.ylabel("Runtime (s)", fontsize=20)
+    plt.xticks(x, labels, fontsize=22)
+    plt.yticks(fontsize=22)
+    plt.title(title, fontsize=26)
+    plt.xlabel("Split configuration", fontsize=24)
+    plt.ylabel("Runtime (s)", fontsize=24)
     plt.grid(True)
     plt.tight_layout()
     plt.savefig(output_file, format="svg")
@@ -35,19 +35,19 @@ configs = [
     {
         "file_path": "results/undirected_split_results_2join.csv",
         "color": "steelblue",
-        "title": "Runtime vs 2-join Split Configurations (k=12)",
+        "title": "Runtime vs 2-join Splits (k=12)",
         "output_file": "results/runtime_vs_split_2join.svg"
     },
     {
         "file_path": "results/undirected_split_results_3join.csv",
         "color": "darkorange",
-        "title": "Runtime vs 3-join Split Configurations (k=12)",
+        "title": "Runtime vs 3-join Splits (k=12)",
         "output_file": "results/runtime_vs_split_3join.svg"
     },
     {
         "file_path": "results/undirected_split_results_4join.csv",
         "color": "seagreen",
-        "title": "Runtime vs 4-join Split Configurations (k=12)",
+        "title": "Runtime vs 4-join Splits (k=12)",
         "output_file": "results/runtime_vs_split_4join.svg"
     }
 ]

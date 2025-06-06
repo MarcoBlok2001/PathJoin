@@ -30,12 +30,14 @@ for j in sorted(grouped_undir['join'].unique()):
         subset['k'], subset['runtime_mean'], yerr=subset['runtime_std'],
         label=joinmethod_labels.get(j, f'Config {j}'), marker='o', linestyle='-', capsize=5
     )
-plt.title("Runtime vs Cycle Length",fontsize=16)
+plt.title("Runtime vs Cycle Length",fontsize=18)
 plt.yscale("log")
-plt.xlabel("Cycle Length (k)", fontsize=14)
-plt.ylabel("Runtime (s)", fontsize=14)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+plt.xlabel("Cycle Length (k)", fontsize=16)
+plt.ylabel("Runtime (s)", fontsize=16)
 plt.grid(True)
-plt.legend(title="Join method", fontsize=12, title_fontsize=13)
+plt.legend(title="Join method", fontsize=14, title_fontsize=15)
 plt.tight_layout()
 plt.savefig("results/joinmethods_runtime_vs_k.svg", format="svg")
 

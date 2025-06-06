@@ -56,15 +56,15 @@ for name in graph_names:
         )
 
 # Plot aesthetics
-plt.title("Runtime vs Cycle Length (k)", fontsize=16)
+plt.title("Runtime vs Cycle Length (k)", fontsize=18)
 plt.yscale("log")
-plt.xlabel("Cycle Length (k)", fontsize=14)
-plt.ylabel("Runtime (s)", fontsize=14)
-plt.xticks(fontsize=12)
-plt.yticks(fontsize=12)
+plt.xlabel("Cycle Length (k)", fontsize=16)
+plt.ylabel("Runtime (s)", fontsize=16)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
 # plt.grid(True, which='both', linestyle='--', linewidth=0.5)
 plt.grid(True)
-plt.legend(title="Graph", fontsize=12, title_fontsize=13)
+plt.legend(title="Graph", fontsize=14, title_fontsize=15)
 plt.tight_layout()
 
 # Save and show
