@@ -28,17 +28,43 @@
 
 #include <stdio.h>
 
-// Reads a Pajek-style .net file and returns an adjacency matrix.
-// Fills in the number of vertices via pointer.
-// The returned matrix should be freed by the caller.
+/**
+ * @brief Parses a graph file in Pajek .net format and builds an adjacency matrix.
+ *
+ * @param file      Pointer to an open file containing the graph.
+ * @param n         Output parameter that receives the number of vertices (+1 if 1-based indexing).
+ * @param directed  Non-zero if the graph is directed; 0 if undirected.
+ * @return          Allocated n x n adjacency matrix.
+ *                  Returns NULL on error. Caller is responsible for freeing the matrix.
+ */
 int** parse(FILE *file, int *n, int directed);
 
+/**
+ * @brief Computes degrees for each vertex in the graph.
+ *
+ * @param adj       Adjacency matrix of the graph.
+ * @param n         Number of vertices.
+ * @param directed  Non-zero for directed graphs (in-degree + out-degree), 0 for undirected.
+ * @return          Allocated array of vertex degrees.
+ *                  Caller must free the returned array.
+ */
 int * count_degrees(int **adj, int n, int directed);
 
-// Prints an N x N adjacency matrix.
+/**
+ * @brief Prints the adjacency matrix to stdout.
+ *
+ * @param adj       Adjacency matrix to print.
+ * @param n         Number of vertices (matrix is n x n).
+ */
 void print_adjacency_matrix(int **adj, int n);
 
-// Frees an N x N adjacency matrix.
+/**
+ * @brief Frees the memory allocated for the adjacency matrix and degree array.
+ *
+ * @param adj       Adjacency matrix to free.
+ * @param degrees   Array of degrees to free.
+ * @param n         Number of vertices.
+ */
 void free_adjacency_matrix(int **adj, int *degrees, int n);
 
 #endif // GRAPH_IO_H

@@ -48,7 +48,7 @@ make clean
 
 - `-d <true|false>`: Flag indicating if the graph is directed. Default: `false`.
 - `-c <int1> <int2> [<int3> <int4>]`: Join configuration. A sequence of integers representing the lengths of paths to be joined. Must sum to the cycle length. Supports 2-join, 3-join, or 4-join.
-- `-o <filename>`: Output file name. If specified, the program writes results (cycle count and list of cycles) to the file.
+- `-o [<filename>]`: Output file name. If specified, the program writes results (cycle count and list of cycles) to the file.
 - `-v`: Enables verbose output to standard output.
 - `-twocore <true|false>`: Enables/disables two-core preprocessing. Default: `true`.
 

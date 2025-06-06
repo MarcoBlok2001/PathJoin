@@ -29,6 +29,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Prunes all vertices of degree 1 from the graph iteratively to compute the 2-core.
+ *
+ * The function modifies the adjacency matrix and degree array in-place.
+ * In a 2-core, all vertices have degree at least 2 (or 0 if removed).
+ *
+ * @param adj           The adjacency matrix representing the graph.
+ * @param degrees       Array of vertex degrees, updated in-place.
+ * @param num_vertices  Total number of vertices in the graph.
+ * @param directed      Non-zero if the graph is directed; 0 if undirected.
+ * @return              Pointer to the updated degrees array (same as input).
+ */
 int* twocores(int** adj, int *degrees, int num_vertices, int directed);
 
 #endif // PRE_PROCESSING_H

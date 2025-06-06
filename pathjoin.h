@@ -32,12 +32,27 @@
 #include "uthash.h"
 #include "paths.h"
 
+/**
+ * @brief Structure representing a cycle entry in a hash set.
+ */
 typedef struct {
     int *cycle;
     int len;
     UT_hash_handle hh;
 } CycleSetEntry;
 
+/**
+ * @brief Joins two path maps to enumerate simple cycles formed by concatenating paths.
+ *
+ * @param map1 Pointer to the first path map
+ * @param k1 Length of paths in the first map (i.e., number of edges)
+ * @param map2 Pointer to the second path map
+ * @param k2 Length of paths in the second map
+ * @param max_nodes Maximum number of nodes in the graph (used for visited array)
+ * @param out_count Pointer to an integer where the number of cycles found will be stored
+ * @param verbose If non-zero, enables verbose output during enumeration
+ * @return Pointer to a hash set of unique canonicalized cycles found
+ */
 CycleSetEntry* path_join(
     PathMapEntry *map1, int k1,
     PathMapEntry *map2, int k2,
@@ -46,6 +61,20 @@ CycleSetEntry* path_join(
     int verbose
 );
 
+/**
+ * @brief Joins three path maps to enumerate simple cycles formed by concatenating paths.
+ *
+ * @param map1 Pointer to the first path map
+ * @param k1 Length of paths in the first map
+ * @param map2 Pointer to the second path map
+ * @param k2 Length of paths in the second map
+ * @param map3 Pointer to the third path map
+ * @param k3 Length of paths in the third map
+ * @param max_nodes Maximum number of nodes in the graph (used for visited array)
+ * @param out_count Pointer to an integer where the number of cycles found will be stored
+ * @param verbose If non-zero, enables verbose output during enumeration
+ * @return Pointer to a hash set of unique canonicalized cycles found
+ */
 CycleSetEntry* path_join_three(
     PathMapEntry *map1, int k1,
     PathMapEntry *map2, int k2,
@@ -55,6 +84,22 @@ CycleSetEntry* path_join_three(
     int verbose
 );
 
+/**
+ * @brief Joins four path maps to enumerate simple cycles formed by concatenating paths.
+ *
+ * @param map1 Pointer to the first path map
+ * @param k1 Length of paths in the first map
+ * @param map2 Pointer to the second path map
+ * @param k2 Length of paths in the second map
+ * @param map3 Pointer to the third path map
+ * @param k3 Length of paths in the third map
+ * @param map4 Pointer to the fourth path map
+ * @param k4 Length of paths in the fourth map
+ * @param max_nodes Maximum number of nodes in the graph (used for visited array)
+ * @param out_count Pointer to an integer where the number of cycles found will be stored
+ * @param verbose If non-zero, enables verbose output during enumeration
+ * @return Pointer to a hash set of unique canonicalized cycles found
+ */
 CycleSetEntry* path_join_four(
     PathMapEntry *map1, int k1,
     PathMapEntry *map2, int k2,

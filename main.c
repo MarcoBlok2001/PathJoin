@@ -43,12 +43,14 @@ typedef struct {
     int config_len;
 } ProgramOptions;
 
+// Parses command line arguments into ProgramOptions struct
 int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
     if (argc < 3) {
         fprintf(stderr, "Usage: %s <graph_file> <cyclesize> [-d true|false] [-v true|false] [-c int1 int2 int3 int4]\n", argv[0]);
         return 0;
     }
 
+    // Required arguments
     opts->filename = argv[1];
     opts->cyclesize = atoi(argv[2]);
     if (opts->cyclesize < 2) {
@@ -62,8 +64,10 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
     opts->config_len = 0;
     opts->outfilename = NULL;
 
+    // Optional arguments
     for (int i = 3; i < argc; i++) {
         if (strcmp(argv[i], "-d") == 0) {
+            // Directed flag
             if (i + 1 >= argc) {
                 fprintf(stderr, "Missing value for -d\n");
                 return 0;
@@ -76,8 +80,10 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
             }
             i++;
         } else if (strcmp(argv[i], "-v") == 0) {
+            // Verbose output flag
             opts->verbose = 1;
         } else if (strcmp(argv[i], "-twocore") == 0) {
+            // Two-core optimisation
             if (i + 1 >= argc) {
                 fprintf(stderr, "Missing value for -d\n");
                 return 0;
@@ -90,6 +96,7 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
             }
             i++;
         } else if (strcmp(argv[i], "-c") == 0) {
+            // Path configuration values
             int j = 0;
             int c_sum = 0;
             while (j < MAX_CONFIG && i + 1 + j < argc && argv[i + 1 + j][0] != '-') {
@@ -113,12 +120,11 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
             opts->config_len = j;
             i += j;
         } else if (strcmp(argv[i], "-o") == 0) {
+            // Output file name
             if (i + 1 >= argc || argv[i + 1][0] == '-') {
-                // Generate default name based on input filename, stripping extension
+                // Generate default output filename
                 const char* input = opts->filename;
                 const char* suffix = "_output.txt";
-
-                // Find last '/' and '.' after that
                 const char* last_slash = strrchr(input, '/');
                 const char* base = last_slash ? last_slash + 1 : input;
                 const char* dot = strrchr(base, '.');
@@ -134,7 +140,7 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
 
                 snprintf(opts->outfilename, total_len, "%.*s%s", (int)base_len, input, suffix);
             } else {
-                // Use provided output filename
+                // Use user-provided output filename
                 opts->outfilename = strdup(argv[i + 1]);
                 if (!opts->outfilename) {
                     fprintf(stderr, "Memory allocation failed for output filename\n");
@@ -143,6 +149,7 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
                 i++;
             }
         } else {
+            // Unknown flag
             fprintf(stderr, "Unknown option or misplaced argument: %s\n", argv[i]);
             return 0;
         }
@@ -151,6 +158,7 @@ int parse_arguments(int argc, char* argv[], ProgramOptions* opts) {
     return 1;
 }
 
+// Writes found cycles to a file
 void write_cycles_to_file(const char* filename, CycleSetEntry* cycles, int cycle_count, int cyclesize) {
     FILE* out = fopen(filename, "w");
     if (!out) {
@@ -171,8 +179,9 @@ void write_cycles_to_file(const char* filename, CycleSetEntry* cycles, int cycle
     fclose(out);
 }
 
+// Prepares path structures used for cycle construction based on config
 PathMapEntry** get_path_configs(ProgramOptions* opts, int** adj, int* degrees, int num_vertices, int* unique_count_ptr, PathMapEntry*** unique_paths) {
-    int path_sizes[MAX_CONFIG];  // Store unique path sizes
+    int path_sizes[MAX_CONFIG];
     PathMapEntry* paths[MAX_CONFIG] = {NULL};
     int unique_count = 0;
 
@@ -189,6 +198,7 @@ PathMapEntry** get_path_configs(ProgramOptions* opts, int** adj, int* degrees, i
         }
     }
 
+    // Identify unique path sizes to avoid recomputation
     for (int i = 0; i < opts->config_len; i++) {
         int found = 0;
         for (int j = 0; j < unique_count; j++) {
@@ -204,6 +214,7 @@ PathMapEntry** get_path_configs(ProgramOptions* opts, int** adj, int* degrees, i
         }
     }
 
+    // Map config to corresponding path entries
     PathMapEntry** config_paths = malloc(sizeof(PathMapEntry*) * opts->config_len);
     if (!config_paths) {
         fprintf(stderr, "Memory allocation failed for config_paths\n");
@@ -215,8 +226,6 @@ PathMapEntry** get_path_configs(ProgramOptions* opts, int** adj, int* degrees, i
         fprintf(stderr, "Memory allocation failed for unique_paths\n");
         return NULL;
     }
-
-
 
     for (int i = 0; i < opts->config_len; i++) {
         for (int j = 0; j < unique_count; j++) {
@@ -235,7 +244,7 @@ PathMapEntry** get_path_configs(ProgramOptions* opts, int** adj, int* degrees, i
     return config_paths;
 }
 
-
+// Calls appropriate path joining function based on config length
 CycleSetEntry* run_path_join(PathMapEntry** config_paths, ProgramOptions* opts, int num_vertices, int *cycle_count) {
     int config_len = opts->config_len;
     int verbose = opts->verbose;
@@ -262,28 +271,31 @@ CycleSetEntry* run_path_join(PathMapEntry** config_paths, ProgramOptions* opts, 
     }
 }
 
+// Entry point of the program
 int main(int argc, char* argv[]) {
     ProgramOptions opts;
     if (!parse_arguments(argc, argv, &opts)) return 1;
 
 
-    // Open file
+    // Load graph file
     FILE *file = fopen(opts.filename, "r");
     if (!file) {
         perror("Error opening file");
         return 1;
     }
 
-    // Parse input file into adj matrix
+    // Parse graph into adjacency matrix
     int num_vertices = 0;
     int **adj = parse(file, &num_vertices, opts.directed);
     if (!adj) {
         perror("Error during adj matrix creation.\n");
         return 1;
     }
+
+    // Compute vertex degrees
     int *degrees = count_degrees(adj, num_vertices, opts.directed);
 
-    // 2-core optimization
+    // Optional two-core optimisation
     if (opts.twocore) twocores(adj, degrees, num_vertices, opts.directed);
 
     // Get paths
@@ -292,7 +304,7 @@ int main(int argc, char* argv[]) {
     PathMapEntry **config_paths = get_path_configs(&opts, adj, degrees, num_vertices, &unique_count, &unique_paths);
 
 
-    // Debug prints
+    // Verbose output
     if (opts.verbose) {
         printf("filename: %s\n", opts.filename);
         printf("cyclesize: %d\n", opts.cyclesize);
@@ -304,13 +316,13 @@ int main(int argc, char* argv[]) {
         printf(" - ]\n");
     }
 
-    // Get cycles
+    // Find cycles via PathJoin
     int cycle_count = 0;
     CycleSetEntry*cycles = run_path_join(config_paths, &opts, num_vertices, &cycle_count);
 
-    // printf("\ncycle_count: %d\n", cycle_count);
     printf("%d\n", cycle_count);
 
+    // Write cycles to output file if specified
     if (opts.outfilename != NULL) {
         write_cycles_to_file(opts.outfilename, cycles, cycle_count, opts.cyclesize);
         if (opts.verbose) {
@@ -318,11 +330,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Free cycles
-    // for (int i = 0; i < cycle_count; i++) {
-    //     free(cycles[i]);
-    // }
-    // free(cycles);
+    // Cleanup: free memory for cycles
     CycleSetEntry *centry, *tmp;
     HASH_ITER(hh, cycles, centry, tmp) {
         HASH_DEL(cycles, centry);
@@ -330,16 +338,17 @@ int main(int argc, char* argv[]) {
         free(centry);
     }
 
-    // free paths and path config.
+    // Cleanup: free paths and path config.
     for (int i = 0; i < unique_count; i++) {
         free_path_map(unique_paths[i]);
     }
     free(config_paths);
     free(unique_paths);
 
-    // free adj matrix
+    // Cleanup: free adjacency matrix
     free_adjacency_matrix(adj, degrees, num_vertices);
 
+    // Cleanup: free output filename memory
     if (opts.outfilename) {
         free(opts.outfilename);
     }

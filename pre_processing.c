@@ -25,6 +25,8 @@
 // pre_processing.c
 #include "pre_processing.h"
 
+// Iteratively removes all vertices of degree 1 until no such vertex remains.
+// The result is a pruned version of the graph, known as its 2-core.
 int* twocores(int** adj, int *degrees, int num_vertices, int directed) {
     int changed = 1;
 
@@ -34,16 +36,18 @@ int* twocores(int** adj, int *degrees, int num_vertices, int directed) {
             if (degrees[i] == 1) {
                 for (int j = 0; j < num_vertices; j++) {
                     if (adj[i][j] == 1) {
+                        // Remove edge i -> j
                         changed = 1;
                         adj[i][j] = 0;
                         degrees[i]--;
                         degrees[j]--;
 
                         if (!directed) {
-                            adj[j][i] = 0;  // Only for undirected graphs
+                            adj[j][i] = 0;
                         }
                         break;
                     } else if (directed && adj[j][i] == 1) {
+                        // Remove edge j -> i (for directed case)
                         changed = 1;
                         adj[j][i] = 0;
                         degrees[j]--;
@@ -54,11 +58,6 @@ int* twocores(int** adj, int *degrees, int num_vertices, int directed) {
             }
         }
     }
-
-    // for (int i = 0; i < num_vertices; i++) {
-    //     printf("%d ", degrees[i]);
-    // }
-    // printf("\n");
 
     return degrees;
 }

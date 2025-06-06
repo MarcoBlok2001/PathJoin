@@ -27,9 +27,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * Parses a graph file and builds the adjacency matrix.
+ * Supports "*vertices N" and "*edges" format.
+ */
 int** parse(FILE *file, int *n, int directed) {
     char line[256];
 
+    // Read number of vertices
     if (fgets(line, sizeof(line), file) == NULL || sscanf(line, "*vertices %d", n) != 1) {
         fprintf(stderr, "Invalid or missing *vertices line.\n");
         fclose(file);
@@ -42,9 +47,10 @@ int** parse(FILE *file, int *n, int directed) {
         return NULL;
     }
 
-    // offset if graph vertices start at index 1.
+    // Adjust for 1-based vertex indexing in input
     *n += 1;
 
+    // Allocate adjacency matrix
     int **adj = malloc(*n * sizeof(int *));
     for (int i = 0; i < *n; i++) {
         adj[i] = calloc(*n, sizeof(int));
@@ -57,6 +63,7 @@ int** parse(FILE *file, int *n, int directed) {
         }
     }
 
+    // Read edges and populate adjacency matrix
     int u, v;
     while (fgets(line, sizeof(line), file)) {
         if (sscanf(line, "%d %d", &u, &v) == 2) {
@@ -73,6 +80,10 @@ int** parse(FILE *file, int *n, int directed) {
     return adj;
 }
 
+/**
+ * Computes the degree of each vertex.
+ * In directed graphs, considers both in-degree and out-degree.
+ */
 int *count_degrees(int **adj, int n, int directed) {
     int *degrees = malloc(n * sizeof(int));
 
@@ -83,7 +94,7 @@ int *count_degrees(int **adj, int n, int directed) {
                 degree++;
             }
             if (directed && adj[j][i] == 1) {
-                degree++;
+                degree++; // count in-degree for directed
             }
         }
         degrees[i] = degree;
@@ -91,6 +102,9 @@ int *count_degrees(int **adj, int n, int directed) {
     return degrees;
 }
 
+/**
+ * Utility function to print the adjacency matrix.
+ */
 void print_adjacency_matrix(int **adj, int n) {
     printf("Adjacency Matrix (%d x %d):\n", n, n);
     for (int i = 0; i < n; i++) {
@@ -101,6 +115,9 @@ void print_adjacency_matrix(int **adj, int n) {
     }
 }
 
+/**
+ * Frees the allocated memory for the adjacency matrix and degrees array.
+ */
 void free_adjacency_matrix(int **adj, int *degrees, int n) {
     for (int i = 0; i < n; i++) {
         free(adj[i]);

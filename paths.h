@@ -29,10 +29,18 @@
 #include <stdio.h>
 #include "uthash.h"
 
+/**
+ * @brief Key to identify paths by their start and end vertices.
+ */
 typedef struct {
     int start, end;
 } PathKey;
 
+/**
+ * @brief Structure for storing multiple paths between two vertices.
+ *
+ * Uses uthash for quick lookup by PathKey.
+ */
 typedef struct {
     PathKey key;
     int **path_list;
@@ -41,10 +49,30 @@ typedef struct {
     UT_hash_handle hh;
 } PathMapEntry;
 
+/**
+ * @brief Finds all simple paths of length 'len' in the graph.
+ *
+ * @param adj         The adjacency matrix of the graph.
+ * @param degrees     Array of vertex degrees (used to skip isolated vertices).
+ * @param n_vertices  Number of vertices in the graph.
+ * @param len         The exact length of paths to find (number of edges).
+ * @return            A hash map of paths keyed by start and end vertices.
+ */
 PathMapEntry* get_paths(int **adj, int *degrees, int n_vertices, int len);
 
-void print_path_map(PathMapEntry*paths, int len);
+/**
+ * @brief Prints all paths stored in the given PathMapEntry map.
+ *
+ * @param paths The map of paths to print.
+ * @param len   The length of each path (number of edges).
+ */
+void print_path_map(PathMapEntry *paths, int len);
 
-void free_path_map(PathMapEntry*paths);
+/**
+ * @brief Frees all memory associated with the PathMapEntry map.
+ *
+ * @param paths The map of paths to free.
+ */
+void free_path_map(PathMapEntry *paths);
 
 #endif // PATHS_H
