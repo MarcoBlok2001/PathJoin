@@ -1,4 +1,5 @@
-Experiment 4: Degree distribution
+Experiment 4: Compare cycle counts and runtime with generated graphs with different mean degrees.
+Compare random distribution vs. scale-free distribution.
 
 
 

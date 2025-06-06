@@ -1,8 +1,2 @@
 Experiment 2: Effect of two-core optimization
-
-one graph with randomly generated graphs
-one grpah with twitter
-one graph with google+.
-
-
-
+Compare random generated vs two real world networks.
