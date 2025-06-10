@@ -208,8 +208,16 @@ PathMapEntry** get_path_configs(ProgramOptions* opts, int** adj, int* degrees, i
             }
         }
         if (!found) {
+            int path_count = 0;
             path_sizes[unique_count] = opts->config[i];
-            paths[unique_count] = get_paths(adj, degrees, num_vertices, path_sizes[unique_count]);
+            paths[unique_count] = get_paths(adj, degrees, num_vertices, path_sizes[unique_count], &path_count);
+
+            if (opts->verbose) {
+                printf("Paths of length %d found: %d\n", path_sizes[unique_count], path_count);
+            } else {
+                printf("%d, ", path_count);
+            }
+
             unique_count++;
         }
     }
@@ -320,7 +328,11 @@ int main(int argc, char* argv[]) {
     int cycle_count = 0;
     CycleSetEntry*cycles = run_path_join(config_paths, &opts, num_vertices, &cycle_count);
 
-    printf("%d\n", cycle_count);
+    if (!opts.verbose) {
+        printf("%d\n", cycle_count);
+    } else {
+        printf("\nCycles found: %d\n", cycle_count);
+    }
 
     // Write cycles to output file if specified
     if (opts.outfilename != NULL) {

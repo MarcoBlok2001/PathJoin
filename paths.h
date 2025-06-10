@@ -56,9 +56,10 @@ typedef struct {
  * @param degrees     Array of vertex degrees (used to skip isolated vertices).
  * @param n_vertices  Number of vertices in the graph.
  * @param len         The exact length of paths to find (number of edges).
+ * @param path_count  Pointer to integer where number of paths found can be stored
  * @return            A hash map of paths keyed by start and end vertices.
  */
-PathMapEntry* get_paths(int **adj, int *degrees, int n_vertices, int len);
+PathMapEntry* get_paths(int **adj, int *degrees, int n_vertices, int len, int *path_count);
 
 /**
  * @brief Prints all paths stored in the given PathMapEntry map.

@@ -27,7 +27,7 @@
 #include "paths.h"
 #include "uthash.h"
 
-// Global count of all found paths.
+// Global count of found paths.
 int COUNT = 0;
 
 // Adds a new path to the hash map keyed by start and end vertices.
@@ -94,7 +94,7 @@ static void dfs(int **adj, int n_vertices, int len, int node, int depth, int *pa
 // Finds all simple paths of length len in the graph.
 // Skips isolated vertices.
 // Returns a hash map of paths grouped by their start and end vertices.
-PathMapEntry* get_paths(int **adj, int *degrees, int n_vertices, int len) {
+PathMapEntry* get_paths(int **adj, int *degrees, int n_vertices, int len, int *path_count) {
     PathMapEntry *map = NULL;
     int *path = malloc((len + 1) * sizeof(int));
 
@@ -105,7 +105,11 @@ PathMapEntry* get_paths(int **adj, int *degrees, int n_vertices, int len) {
     }
 
     free(path);
-    printf("%d, ", COUNT);
+    *path_count = COUNT;
+
+    // reset global COUNT
+    COUNT = 0;
+
     return map;
 }
 

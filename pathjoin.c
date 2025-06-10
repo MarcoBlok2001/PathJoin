@@ -149,7 +149,7 @@ CycleSetEntry* path_join(
                     if (!cycle_already_seen(cycle_set, canon, total_len)) {
                         if (verbose) {
                             if (count % 1000 == 0) {
-                                printf("\rEnumerating cycles: %d", count);
+                                printf("\rEnumerating cycles in progress: %d", count);
                                 fflush(stdout);
                             }
                         }
@@ -228,7 +228,7 @@ CycleSetEntry* path_join_three(
                             if (!cycle_already_seen(cycle_set, canon, total_len)) {
                                 if (verbose) {
                                     if (count % 1000 == 0) {
-                                        printf("\rEnumerating cycles: %d", count);
+                                        printf("\rEnumerating cycles in progress: %d", count);
                                         fflush(stdout);
                                     }
                                 }
@@ -321,7 +321,7 @@ CycleSetEntry* path_join_four(
                                     if (!cycle_already_seen(cycle_set, canon, total_len)) {
                                         if (verbose) {
                                             if (count % 1000 == 0) {
-                                                printf("\rEnumerating cycles: %d", count);
+                                                printf("\rEnumerating cycles in progress: %d", count);
                                                 fflush(stdout);
                                             }
                                         }
