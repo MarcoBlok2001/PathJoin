@@ -4,7 +4,7 @@ This repository contains the C implementation of Pathjoin, designed to identify 
 
 ## Features
 
-- Supports graphs in [Pajek `.net`](http://vlado.fmf.uni-lj.si/pub/networks/pajek/) format
+- Supports graphs in [Pajek `.net`](https://gephi.org/users/supported-graph-formats/pajek-net-format/) format
 - Enumerates cycles of a user-specified length
 - Supports 2-join, 3-join, and 4-join configurations
 - Efficient implementation using dynamic memory management
